@@ -3,44 +3,65 @@ package main
 import (
 	"fmt"
 	"os"
+	// "encoding/json"
+	"github.com/jinzhu/gorm"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/xorm"
 	. "groot/model"
 )
 
-var engine *xorm.Engine
-
 func main() {
-	engine, err := xorm.NewEngine("mysql", "root:mmbeibei@/groot?charset=utf8")
-	defer engine.Close()
+	db, err := gorm.Open("mysql", "root:Mysql@2018@/groot?charset=utf8&parseTime=True&loc=Local")
+	defer db.Close()
+
 	if err != nil {
-		fmt.Println("连接失败")
-		os.Exit(1)
+		fmt.Println("连接数据库失败", err)
+		os.Exit(2)
 	}
 
-	exist, _ := engine.IsTableExist(new(User))
+	db.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Good{}, &Reply{})
 
-	if !exist {
-		err = engine.CreateTables(new(User), new(Role))
+	// 创建用户
+	// user := User{Name: "Captain", Email: "captain@gmail.com", IsAdmin: true}
+	// db.Create(&user)
 
-		if err != nil {
-			fmt.Println("fail to create table user")
-			os.Exit(2)
-		}
-	}
+	// 创建tag
+	// tag := Tag{Name: "javascript", Description: "编程语言", AuthorID: 2}
+	// db.Create(&tag)
 
-	// role := new(Role)
-	// role.Name = "普通用户"
-	// engine.Insert(role)
+	// 创建topic
+	// topic := Topic{Title: "如何成为一个超级英雄", Content: "<strong>洗洗睡吧</strong>", AuthorID: 1}
+	// db.Create(&topic)
+	// tag := TopicTag{TopicID: 2, TagID: 2}
+	// db.Create(&tag)
 
-	user := new(User)
-	user.Name = "Stark"
-	user.Birthday = "1990-11-09"
-	affect, er := engine.Insert(user)
+	// 添加评论
+	// comment := Comment{Content: "确实不错", AuthorID: 2, TopicID: 1}
+	// db.Create(&comment)
 
-	if er != nil {
-		fmt.Println("fail to insert user")
-	} else {
-		fmt.Println("success", affect)
-	}
+	// 添加回复
+	// reply := Reply{Content: "haha", CommentID: 1, AuthorID: 1, ReceiverID: 2}
+	// db.Create(&reply)
+
+	// 点赞
+	// good := Good{UserID: 2, TargetID: 1, Type: "topic"}
+	// db.Create(&good)
+
+	// var comments []*Comment
+	// rows, err := db.Raw("select c.*, u.name from comments c inner join users u on c.author_id = u.id").Rows()
+	// if err != nil {
+	// 	fmt.Println("查询出错", err)
+	// 	os.Exit(2)
+	// }
+
+	// defer rows.Close()
+	// for rows.Next() {
+	// 	var comment Comment
+	// 	db.ScanRows(rows, &comment)
+	// 	fmt.Println(comment)
+	// 	comments = append(comments, &comment)
+	// }
+	// db.Find(&comments)
+	// if data, err := json.Marshal(comments); err == nil {
+	// 	fmt.Printf("%s\n", data)
+	// }
 }
