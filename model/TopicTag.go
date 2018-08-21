@@ -2,6 +2,6 @@ package model
 
 type TopicTag struct {
 	BaseModel
-	TopicID			uint
-	TagID				uint
+	TopicID			uint			`json:"topicID"`
+	TagID				uint			`json: "tagID"`
 }
