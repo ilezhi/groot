@@ -1,10 +1,12 @@
 package model
 
+import "gopkg.in/go-playground/validator.v9"
+
 type User struct {
 	BaseModel
-	Name			string		`json:"name" gorm:"size:15;not null"`
+	Name			string		`json:"name" gorm:"size:15;not null" validate:"min=2,max=5,required"`
 	Nickname	string		`json:"nickName" gorm:"size:50;default:''"`
-	Email			string		`json:"email" gorm:"size:50;unique_index"`
+	Email			string		`json:"email" gorm:"size:50;unique_index" validate:"required,email"`
 	Password	string		`json:"password" gorm:"type:char(32)"`
 	Gender		int				`json:"gender" gorm:"type:tinyint"`
 	Phone			string		`json:"phone" gorm:"type:char(11)"`
