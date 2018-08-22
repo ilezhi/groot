@@ -1,5 +1,6 @@
 package model
 
+import "fmt"
 import "gopkg.in/go-playground/validator.v9"
 
 type User struct {
@@ -18,4 +19,13 @@ type User struct {
 	IsAdmin		bool			`json:"isAdmin" gorm:"default:'0'"`
 	IsVerify	bool			`json:"isVerify" gorm:"default:'0'"`		// 默认账号需要邮箱激活验证
 	IsLock		bool			`json:"isLock" gorm:"default:'0'"`		// 0: 不锁, 1:锁定
+}
+
+var validate *validator.Validate
+func (user *User) Validate() error {
+	validate = validator.New()
+	fmt.Println("validate", user)
+	err := validate.Struct(user)
+
+	return err
 }
