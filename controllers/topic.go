@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/kataras/iris"
 
+	// . "groot/db"
 	. "groot/model"
+	. "groot/services"
 )
 
 /**
@@ -21,8 +23,26 @@ func ByID(ctx iris.Context) {
 
 func Create(ctx iris.Context) {
 	var topic Topic
-	if err := ctx.ReadJSON(&topic); err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "参数有误"})
+	err := ctx.ReadJSON(&topic)
+
+	if err != nil {
+		ctx.JSON(iris.Map{"code": 1, "msg": "无法序列化成json格式"})
+		return
+	}
+
+	topic.AuthorID= 10000
+	err = topic.Validate()
+
+	if err != nil {
+		ctx.JSON(iris.Map{"code": 1, "msg": "参数验证失败"})
+		return
+	}
+
+	// 添加话题和tag
+	err = TS.Create(&topic)
+
+	if err != nil {
+		ctx.JSON(iris.Map{"code": 1, "msg": "新增失败"})
 		return
 	}
 

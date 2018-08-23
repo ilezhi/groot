@@ -21,11 +21,10 @@ type User struct {
 	IsLock		bool			`json:"isLock" gorm:"default:'0'"`		// 0: 不锁, 1:锁定
 }
 
-var validate *validator.Validate
 func (user *User) Validate() error {
-	validate = validator.New()
+	valid := validator.New()
 	fmt.Println("validate", user)
-	err := validate.Struct(user)
+	err := valid.Struct(user)
 
 	return err
 }
