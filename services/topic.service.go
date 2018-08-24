@@ -7,8 +7,8 @@ import (
 )
 
 type ITopic interface {
-	GetList() []Topic
-	GetByID(id uint) Topic
+	GetList() ([]*Topic, error)
+	GetByID(id uint) (*Topic, error)
 	Create(topic *Topic) error
 	UpdateByID(topic *Topic, id uint) error
 	DeleteByID(id uint) (Topic, bool)
@@ -20,14 +20,64 @@ type ITopic interface {
 	Issue(issue bool) bool
 }
 
-type TopicService struct {}
+type topicService struct {}
 
-var TS = TopicService{}
+var TopicService = topicService{}
+
+/**
+ * 获取topic list
+ */
+func (ts *topicService) GetList(issue bool) ([]*Topic, error) {
+	var topics []*Topic
+	var err error
+	if issue {
+		err = DB.Where("issue = ?", true).Limit(2).Find(&topics).Error
+	} else {
+		err = DB.Limit(2).Find(&topics).Error
+	}
+
+	return topics, err
+}
+
+/**
+ * 根据id获取topic
+ */
+func (ts *topicService) GetByID(id uint) (*Topic, error) {
+	var topic Topic
+	var tags []interface{}
+	const sql = `select t.id, t.name from tags t
+							inner join topic_tags tt 
+							on tt.tag_id = t.id and tt.topic_id = ?`
+
+	// 获取tags
+	rows, err := DB.Raw(sql, id).Rows()
+	if err != nil {
+		return &topic, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var tag Tag
+		DB.ScanRows(rows, &tag)
+		tags = append(tags, tag)
+	}
+
+	err = DB.First(&topic, id).Error
+	if err != nil {
+		return &topic, err
+	}
+
+	topic.View++
+	topic.UpdateView()
+
+	topic.Tags = tags
+	return &topic, err
+}
 
 /**
  * 新增话题
  */
-func (ts *TopicService) Create(topic *Topic) error {
+func (ts *topicService) Create(topic *Topic) error {
 	fmt.Println("service", topic)
 	tx := DB.Begin()
 

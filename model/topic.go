@@ -2,6 +2,7 @@ package model
 
 import "fmt"
 import "gopkg.in/go-playground/validator.v9"
+import . "groot/db"
 
 type Topic struct {
 	BaseModel
@@ -25,4 +26,8 @@ type Topic struct {
 func (topic *Topic) Validate() error {
 	fmt.Println("验证topic", topic)
 	return validator.New().Struct(topic)
+}
+
+func (topic *Topic) UpdateView() error {
+	return DB.Model(topic).Update("view", topic.View).Error
 }

@@ -13,12 +13,35 @@ import (
  * 登录
  */
 func List(ctx iris.Context) {
-	ctx.JSON(iris.Map{"name": "topic list"})
+	topics, err := TopicService.GetList(true)
+	if err != nil {
+		ctx.JSON(iris.Map{"code": 1, "msg": "获取帖子列表失败"})
+		return
+	}
+	
+	ctx.JSON(topics)
 }
 
+/**
+ * 根据id获取话题
+ */
 func ByID(ctx iris.Context) {
-	id, _ := ctx.Params().GetInt("id")
-	ctx.JSON(iris.Map{"topicID": id})
+	id, err := ctx.Params().GetInt("id")
+	
+	if err != nil {
+		ctx.JSON(iris.Map{"code": 1, "msg": "参数有误"})
+		return
+	}
+
+	topic, err := TopicService.GetByID(uint(id))
+
+	if err != nil {
+		fmt.Println("err", err)
+		ctx.JSON(iris.Map{"code": 1, "msg": "查询话题失败"})
+		return
+	}
+
+	ctx.JSON(topic)
 }
 
 func Create(ctx iris.Context) {
@@ -39,7 +62,7 @@ func Create(ctx iris.Context) {
 	}
 
 	// 添加话题和tag
-	err = TS.Create(&topic)
+	err = TopicService.Create(&topic)
 
 	if err != nil {
 		ctx.JSON(iris.Map{"code": 1, "msg": "新增失败"})
