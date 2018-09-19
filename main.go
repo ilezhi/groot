@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	// "os"
 	// "github.com/jinzhu/gorm"
 	// _ "github.com/go-sql-driver/mysql"
@@ -9,7 +9,7 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
 
-	// . "groot/model"
+	// . "groot/models"
 	"groot/db"
 	"groot/route"
 )
@@ -46,13 +46,13 @@ import (
 // 	} else {
 // 		fmt.Println("验证成功")
 // 	}
-// 	err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
-// 		&ProjectMember{}, &Good{}, &Favor{}, &Department{}, &Category{}).Error
+	// err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
+	// 	&ProjectMember{}, &Good{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
 
-// 	if err != nil {
-// 		fmt.Println("创建表格失败", err)
-// 		os.Exit(2)
-// 	}
+	// if err != nil {
+	// 	fmt.Println("创建表格失败", err)
+	// 	os.Exit(2)
+	// }
 // }
 
 func main() {
@@ -63,7 +63,19 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	
+	app.Use(func(ctx iris.Context) {
+		ctx.Next()
+
+		fmt.Println("status", ctx.GetStatusCode())
+		code, _ := ctx.Values().GetInt("code")
+		message := ctx.Values().GetString("message")
+		data := ctx.Values().Get("data")
+		ctx.JSON(iris.Map{"code": code, "message": message, "data": data})
+	})
+
 	Router.Register(app)
+
+	app.DoneGlobal(after)
 
 	app.Run(
 		iris.Addr("localhost:9000"),
@@ -71,4 +83,8 @@ func main() {
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
 	)
+}
+
+func after(ctx iris.Context) {
+	fmt.Println("after", ctx.Values().Get("data"))
 }

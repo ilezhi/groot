@@ -1,4 +1,4 @@
-package model
+package models
 
 // 项目, 可针对项目创建topic集, 
 type Project struct {

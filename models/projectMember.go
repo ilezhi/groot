@@ -1,4 +1,4 @@
-package model
+package models
 
 type ProjectMember struct {
 	BaseModel

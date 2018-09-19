@@ -5,6 +5,6 @@ import (
 )
 
 func Register(app *iris.Application) {
-	RegisterSite(app.Party("/api"))
+	RegisterSite(app.Party("/ajax"))
 	RegisterAdmin(app.Party("/admin"))
 }

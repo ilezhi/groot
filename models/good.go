@@ -1,4 +1,4 @@
-package model
+package models
 
 // 点赞, topic, comment, reply
 type Good struct {

@@ -1,4 +1,4 @@
-package model
+package models
 
 import "fmt"
 import "gopkg.in/go-playground/validator.v9"

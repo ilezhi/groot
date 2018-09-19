@@ -1,4 +1,4 @@
-package model
+package models
 
 // 类别: 将收藏的topic 进行分类
 type Category struct {

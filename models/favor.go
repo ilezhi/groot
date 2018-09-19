@@ -1,4 +1,4 @@
-package model
+package models
 
 // 收藏
 type Favor struct {

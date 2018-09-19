@@ -1,9 +1,9 @@
-package service
+package services
 
 import (
 	"fmt"
-	. "groot/db"
-	. "groot/model"
+	"groot/db"
+	. "groot/models"
 )
 
 type ITopic interface {
@@ -11,7 +11,7 @@ type ITopic interface {
 	GetByID(id uint) (*Topic, error)
 	Create(topic *Topic) error
 	UpdateByID(topic *Topic, id uint) error
-	DeleteByID(id uint) (Topic, bool)
+	DeleteByID(id uint) (*Topic, bool)
 	// 保存成草稿
 	saveDraft(topic *Topic) bool
 	// 置顶
@@ -31,9 +31,9 @@ func (ts *topicService) GetList(issue bool) ([]*Topic, error) {
 	var topics []*Topic
 	var err error
 	if issue {
-		err = DB.Where("issue = ?", true).Limit(2).Find(&topics).Error
+		err = db.DB.Where("issue = ?", true).Limit(2).Find(&topics).Error
 	} else {
-		err = DB.Limit(2).Find(&topics).Error
+		err = db.DB.Limit(2).Find(&topics).Error
 	}
 
 	return topics, err
@@ -44,33 +44,24 @@ func (ts *topicService) GetList(issue bool) ([]*Topic, error) {
  */
 func (ts *topicService) GetByID(id uint) (*Topic, error) {
 	var topic Topic
-	var tags []interface{}
-	const sql = `select t.id, t.name from tags t
-							inner join topic_tags tt 
-							on tt.tag_id = t.id and tt.topic_id = ?`
+	var tags []*Tag
 
-	// 获取tags
-	rows, err := DB.Raw(sql, id).Rows()
+	err := db.DB.First(&topic, id).Error
 	if err != nil {
-		return &topic, err
+		return nil, err
 	}
-
-	defer rows.Close()
-	for rows.Next() {
-		var tag Tag
-		DB.ScanRows(rows, &tag)
-		tags = append(tags, tag)
-	}
-
-	err = DB.First(&topic, id).Error
-	if err != nil {
-		return &topic, err
-	}
-
+	
 	topic.View++
 	topic.UpdateView()
+	
+	tags, err = TagService.FindByTopicID(id)
+
+	if err != nil {
+		return nil, err
+	}
 
 	topic.Tags = tags
+	fmt.Println("topic", topic)
 	return &topic, err
 }
 
@@ -78,30 +69,30 @@ func (ts *topicService) GetByID(id uint) (*Topic, error) {
  * 新增话题
  */
 func (ts *topicService) Create(topic *Topic) error {
-	fmt.Println("service", topic)
-	tx := DB.Begin()
+	// fmt.Println("service", topic)
+	// tx := DB.Begin()
 
-	err := tx.Create(topic).Error
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
+	// err := tx.Create(topic).Error
+	// if err != nil {
+	// 	tx.Rollback()
+	// 	return err
+	// }
 	
-	for _, id := range topic.Tags {
-		val := id.(float64)
-		tag := &TopicTag{
-			TopicID: topic.ID,
-			TagID: uint(val),
-		}
+	// for _, id := range topic.Tags {
+	// 	val := id.(float64)
+	// 	tag := &TopicTag{
+	// 		TopicID: topic.ID,
+	// 		TagID: uint(val),
+	// 	}
 
-		err = tx.Create(tag).Error
+	// 	err = tx.Create(tag).Error
 
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	// 	if err != nil {
+	// 		tx.Rollback()
+	// 		return err
+	// 	}
+	// }
 
-	tx.Commit()
+	// tx.Commit()
 	return nil
 }

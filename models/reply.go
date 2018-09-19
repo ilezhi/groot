@@ -1,4 +1,4 @@
-package model
+package models
 
 type Reply struct {
 	BaseModel
@@ -6,7 +6,7 @@ type Reply struct {
 	CommentID		uint				`json:"commentID" validate:"required,numeric"`
 	AuthorID		uint				`json:"authorID"`
 	ReceiverID	uint				`json:"receiverID" validate:"required,numeric"`
-	TotalGood		uint				`json:"totalGood" gorm:"default:'0'"`
-	Author			User				`json:"author" gorm:"-"`
-	Receiver		User				`json:"receiver" gorm:"-"`
+	TotalGood		int					`json:"totalGood" gorm:"default:'0'"`
+	Author			*User				`json:"author" gorm:"-"`
+	Receiver		*User				`json:"receiver" gorm:"-"`
 }

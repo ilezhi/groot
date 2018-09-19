@@ -1,55 +1,54 @@
-package topic
+package controllers
 
 import (
-	"fmt"
-	"github.com/kataras/iris"
-
-	// . "groot/db"
-	. "groot/model"
+	"groot/models"
 	. "groot/services"
+	"groot/tools"
 )
 
 /**
- * 登录
+ * 获取topic list
  */
-func List(ctx iris.Context) {
+func TopicList(ctx *tools.Context) {
 	topics, err := TopicService.GetList(true)
 	if err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "获取帖子列表失败"})
+		ctx.Go(1, "获取帖子列表失败")
 		return
 	}
-	
-	ctx.JSON(topics)
+
+	ctx.Go(topics)
 }
 
 /**
  * 根据id获取话题
  */
-func ByID(ctx iris.Context) {
+func TopicByID(ctx *tools.Context) {
 	id, err := ctx.Params().GetInt("id")
 	
 	if err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "参数有误"})
+		ctx.Go(406, "参数有误")
 		return
 	}
 
 	topic, err := TopicService.GetByID(uint(id))
 
 	if err != nil {
-		fmt.Println("err", err)
-		ctx.JSON(iris.Map{"code": 1, "msg": "查询话题失败"})
+		ctx.Go(500, "查询话题失败")
 		return
 	}
 
-	ctx.JSON(topic)
+	ctx.Go(topic)
 }
 
-func Create(ctx iris.Context) {
-	var topic Topic
+/**
+ * 新增topic 
+ */
+func CreateTopic(ctx *tools.Context) {
+	var topic models.Topic
 	err := ctx.ReadJSON(&topic)
 
 	if err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "无法序列化成json格式"})
+		ctx.Go(1, "参数有误")
 		return
 	}
 
@@ -57,7 +56,7 @@ func Create(ctx iris.Context) {
 	err = topic.Validate()
 
 	if err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "参数验证失败"})
+		ctx.Go(1, "参数验证失败")
 		return
 	}
 
@@ -65,10 +64,9 @@ func Create(ctx iris.Context) {
 	err = TopicService.Create(&topic)
 
 	if err != nil {
-		ctx.JSON(iris.Map{"code": 1, "msg": "新增失败"})
+		ctx.Go(1, "新增失败")
 		return
 	}
 
-	ctx.JSON(topic)
-	fmt.Println("continue", topic)
+	ctx.Go(topic)
 }

@@ -1,4 +1,4 @@
-package model
+package models
 
 type Comment struct {
 	BaseModel
@@ -6,7 +6,7 @@ type Comment struct {
 	Replies		[]*Reply		`json:"replies" gorm:"-"`
 	AuthorID	uint				`json:"authorID"`
 	TopicID		uint				`json:"topicID" validate:"required"`
-	TotalGood	uint				`json:"totalGood" gorm:"default:'0'"`
+	TotalGood	int					`json:"totalGood" gorm:"default:'0'"`
 	NickName	string			`json:"nickName" gorm:"-"`
 	Avatar		string			`json:"avatar" gorm:"-"`
 }
