@@ -12,6 +12,7 @@ type ITag interface {
 	FindByTopicID(id uint) (*Tag, error)
 	FindByName(name string) ([]*Tag, error)
 	Create(tag *Tag) error
+	DeleteByTopicID(id uint) error
 }
 
 type tagService struct{}
@@ -69,4 +70,8 @@ func (ts *tagService) Create(tag *Tag) error {
 	}
 
 	return nil
+}
+
+func (ts *tagService) DeleteByTopicID(id uint) error {
+	return DB.Delete(&TopicTag{}, "topic_id = ?", id).Error
 }

@@ -6,11 +6,17 @@ import (
 	mysql "groot/db"
 )
 
+type TopicParams struct {
+	Title string		`json:"title"`
+	Content string	`json:"content"`
+	Tags []uint			`json:"tags"`
+}
+
 type Topic struct {
 	BaseModel
 	Title				string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=2,max=30,required"`
 	Content			string				`json:"content" gorm:"type:text"`
-	Tags				[]*Tag				`json:"tags,-" gorm:"-" validate:"gte=1,dive,numeric"`
+	Tags				[]*Tag				`json:"tags,-" gorm:"-"`
 	Shared			bool					`json:"shared" gorm:"default:'0'"`
 	AuthorID		uint					`json:"authorID" gorm:"index" validate:"required,numeric"`
 	View				uint					`json:"view" gorm:"default:'0'"`			// 浏览量
