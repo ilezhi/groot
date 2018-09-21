@@ -6,7 +6,7 @@ import (
 	. "groot/services"
 )
 
-func TagList(ctx *tools.Context) {
+func Tags(ctx *tools.Context) {
 	tags, err := TagService.Find()
 
 	if err != nil {
@@ -17,7 +17,7 @@ func TagList(ctx *tools.Context) {
 	ctx.Go(tags)
 }
 
-func TagByID(ctx *tools.Context) {
+func Tag(ctx *tools.Context) {
 	id, err := ctx.Params().GetInt("id")
 
 	if err != nil {
@@ -33,6 +33,19 @@ func TagByID(ctx *tools.Context) {
 	}
 
 	ctx.Go(tag)
+}
+
+func SearchTag(ctx *tools.Context) {
+	name := ctx.Params().Get("name")
+
+	if name == "all" {
+		Tags(ctx)
+		return
+	}
+
+	tags, _ := TagService.FindByName(name)
+
+	ctx.Go(tags)
 }
 
 func CreateTag(ctx *tools.Context) {

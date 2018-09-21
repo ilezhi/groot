@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"time"
 	"groot/models"
 	. "groot/services"
 	"groot/tools"
@@ -62,7 +63,9 @@ func CreateTopic(ctx *tools.Context) {
 	fmt.Println("params", params)
 	topic.Title = params.Title
 	topic.Content = params.Content
+	topic.Shared = params.Shared
 	topic.AuthorID= 10000
+	topic.UpdatedAt = time.Now().Unix()
 	err = topic.Validate()
 
 	if err != nil {

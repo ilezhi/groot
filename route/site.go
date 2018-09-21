@@ -15,7 +15,10 @@ func RegisterSite(app iris.Party) {
 	app.Post("/topic/update/{id:int}", tools.Handler(controllers.UpdateTopic))
 	app.Post("/topic/awesome/{id:int}", tools.Handler(controllers.AwesomeTopic))
 
-	app.Get("/tags", tools.Handler(controllers.TagList))
-	app.Get("/tag/{id:int}", tools.Handler(controllers.TagByID))
+	app.Get("/tags", tools.Handler(controllers.Tags))
+	app.Get("/tag/{id:int}", tools.Handler(controllers.Tag))
 	app.Post("/tag/create", tools.Handler(controllers.CreateTag))
+
+	// 搜索相关
+	app.Get("/search/tag/{name:string}", tools.Handler(controllers.SearchTag))
 }

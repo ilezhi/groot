@@ -57,7 +57,7 @@ func (ts *tagService) FindByTopicID(id uint) ([]*Tag, error) {
 func (ts *tagService) FindByName(name string) ([]*Tag, error) {
 	var tags []*Tag
 
-	err := DB.Where("name LIKE ?", name).Find(&tags).Error
+	err := DB.Where("name LIKE ?", "%" + name + "%").Find(&tags).Error
 
 	return tags, err
 }
