@@ -9,8 +9,11 @@ import (
 )
 
 func RegisterSite(app iris.Party) {
-	app.Get("/topics", tools.Handler(controllers.Topics))
+	app.Get("/topics/all", tools.Handler(controllers.Topics))
+	app.Get("/topics/awesome", tools.Handler(controllers.AwesomeTopics))
+	// app.Get("/topics/department", tools.Handler(controllers.DetpTopics))
 	app.Get("/topic/{id:int}", tools.Handler(controllers.Topic))
+
 	app.Post("/topic/create", tools.Handler(controllers.CreateTopic))
 	app.Post("/topic/update/{id:int}", tools.Handler(controllers.UpdateTopic))
 	app.Post("/topic/awesome/{id:int}", tools.Handler(controllers.AwesomeTopic))

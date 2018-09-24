@@ -13,7 +13,10 @@ func init() {
 var DB *gorm.DB
 
 func Connect() (db *gorm.DB, err error) {
-	db, err = gorm.Open("mysql", "root:Mysql@2018@/groot?charset=utf8&parseTime=True&loc=Local")
+	db, err = gorm.Open("mysql", "root:mmbeibei@/groot?charset=utf8&parseTime=True&loc=Local")
+	if err != nil {
+		fmt.Println("fail to connect database", err)
+	}
 	DB = db
 	return
 }

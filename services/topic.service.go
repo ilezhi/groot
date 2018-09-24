@@ -7,6 +7,8 @@ import (
 
 type ITopic interface {
 	Find(lastID uint, size int) ([]*Topic, error)
+	FindAwesome(lastID uint, size int) ([]*Topic, error)
+
 	FindByID(id uint) (*Topic, error)
 	ByID(id uint) (*Topic, error)
 	Create(topic *Topic, tags *[]uint) error
@@ -21,6 +23,7 @@ type ITopic interface {
 
 	saveTag(id uint, tags *[]uint) error
 	FindAndUpdateColumns(id uint, columns interface{}) (*Topic, error)
+	Count(query map[string]interface{}) int
 }
 
 type topicService struct {}
@@ -32,8 +35,16 @@ var TopicService = topicService{}
  */
 func (ts *topicService) Find(lastID uint, size int) ([]*Topic, error) {
 	var topics []*Topic
-	err := db.DB.Order("id desc").Where("id >= ? AND issue = ?", lastID, true).Limit(size).Find(&topics).Error
+	err := db.DB.Order("updated_at desc").Where("updated_at >= ? AND issue = ?", lastID, true).Limit(size).Find(&topics).Error
+	return topics, err
+}
 
+/**
+ *
+ */
+func (ts *topicService) FindAwesome(lastID uint, size int) ([]*Topic, error) {
+	var topics []*Topic
+	err := db.DB.Order("updated_at desc").Where("updated_at >= ? AND issue = 1 AND Awesome = 1").Limit(size).Find(&topics).Error
 	return topics, err
 }
 
@@ -159,4 +170,10 @@ func (ts *topicService) FindAndUpdateColumns(id uint, columns interface{}) (*Top
 	err = db.DB.Model(topic).UpdateColumns(columns).Error
 
 	return topic, err
+}
+
+func (ts *topicService) Count(query map[string]interface{}) int {
+	var count int
+	db.DB.Model(&Topic{}).Where(query).Count(&count)
+	return count
 }

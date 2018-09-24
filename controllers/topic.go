@@ -17,7 +17,37 @@ func Topics(ctx *tools.Context) {
 
 	topics, err := TopicService.Find(uint(lastID), size)
 	if err != nil {
+		fmt.Println("topics", topics, err)
 		ctx.Go(1, "获取帖子列表失败")
+		return
+	}
+
+	// 获取tag
+	for _, topic := range topics {
+		topic.Tags, _ = TagService.FindByTopicID(topic.ID)
+	}
+
+	query := map[string]interface{}{"issue": 1}
+	count := TopicService.Count(query)
+
+	data := map[string]interface{}{
+		"total": count,
+		"list": topics,
+	}
+	ctx.Go(data)
+}
+
+/**
+ *
+ */
+func AwesomeTopics(ctx *tools.Context) {
+	lastID, _ := ctx.URLParamInt("lastID")
+	size, _ := ctx.URLParamInt("size")
+
+	topics, err := TopicService.FindAwesome(uint(lastID), size)
+
+	if err != nil {
+		ctx.Go(500, "查询失败")
 		return
 	}
 
