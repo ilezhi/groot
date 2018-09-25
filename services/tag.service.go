@@ -11,6 +11,7 @@ type ITag interface {
 	FindByIDs(ids []uint) ([]*Tag, error)
 	FindByTopicID(id uint) (*Tag, error)
 	FindByName(name string) ([]*Tag, error)
+	FindByTopics(topics []*Topic)(error)
 	Create(tag *Tag) error
 	DeleteByTopicID(id uint) error
 }
@@ -62,14 +63,21 @@ func (ts *tagService) FindByName(name string) ([]*Tag, error) {
 	return tags, err
 }
 
-func (ts *tagService) Create(tag *Tag) error {
-	err := DB.Create(tag).Error
+func (ts *tagService) FindByTopics(topics []*Topic)(error) {
+	for _, topic := range topics {
+		tags, err := ts.FindByTopicID(topic.ID)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
+		topic.Tags = tags
 	}
 
 	return nil
+}
+
+func (ts *tagService) Create(tag *Tag) error {
+	return DB.Create(tag).Error
 }
 
 func (ts *tagService) DeleteByTopicID(id uint) error {

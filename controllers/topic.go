@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"fmt"
+	"math/rand"
 	"time"
+	"fmt"
 	"groot/models"
 	. "groot/services"
 	"groot/tools"
@@ -12,41 +13,48 @@ import (
  * 获取topic list
  */
 func Topics(ctx *tools.Context) {
-	lastID, _ := ctx.URLParamInt("lastID")
+	lastID, _ := ctx.URLParamInt64("lastID")
 	size, _ := ctx.URLParamInt("size")
 
-	topics, err := TopicService.Find(uint(lastID), size)
+	num := rand.Intn(10)
+	fmt.Println("int", num)
+	time.Sleep(time.Duration(num) * time.Second)
+
+	query := map[string]interface{}{"issue": 1}
+	topics, err := TopicService.FindListByQuery(lastID, size, query)
 	if err != nil {
-		fmt.Println("topics", topics, err)
-		ctx.Go(1, "获取帖子列表失败")
+		ctx.Go(500, "查询失败")
 		return
 	}
 
-	// 获取tag
-	for _, topic := range topics {
-		topic.Tags, _ = TagService.FindByTopicID(topic.ID)
-	}
-
-	query := map[string]interface{}{"issue": 1}
-	count := TopicService.Count(query)
-
-	data := map[string]interface{}{
-		"total": count,
-		"list": topics,
-	}
-	ctx.Go(data)
+	ctx.Go(topics)
 }
 
 /**
- *
+ * 精华
  */
 func AwesomeTopics(ctx *tools.Context) {
-	lastID, _ := ctx.URLParamInt("lastID")
+	lastID, _ := ctx.URLParamInt64("lastID")
 	size, _ := ctx.URLParamInt("size")
 
-	topics, err := TopicService.FindAwesome(uint(lastID), size)
-
+	query := map[string]interface{}{"awesome": 1}
+	topics, err := TopicService.FindListByQuery(lastID, size, query)
 	if err != nil {
+		ctx.Go(500, "查询失败")
+		return
+	}
+
+	ctx.Go(topics)
+}
+
+func MyTopics(ctx *tools.Context) {
+	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
+
+	query := map[string]interface{}{"author_id": 10000}
+	topics, err := TopicService.FindListByQuery(lastID, size, query)
+	if err != nil {
+		fmt.Println("err", err)
 		ctx.Go(500, "查询失败")
 		return
 	}
@@ -90,15 +98,15 @@ func CreateTopic(ctx *tools.Context) {
 		ctx.Go(1, "参数有误")
 		return
 	}
-	fmt.Println("params", params)
+
 	topic.Title = params.Title
 	topic.Content = params.Content
 	topic.Shared = params.Shared
-	topic.AuthorID= 10000
-	topic.UpdatedAt = time.Now().Unix()
+	topic.AuthorID= 4
 	err = topic.Validate()
 
 	if err != nil {
+		fmt.Println("err", err)
 		ctx.Go(1, "参数验证失败")
 		return
 	}

@@ -27,7 +27,7 @@ type Topic struct {
 	Top					bool					`json:"top" gorm:"default:'0'"`			// 置顶
 	Awesome			bool					`json:"awesome" gorm:"default:'0'"`		// 精华
 	Issue				bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
-	UpdatedAt		int64					`json:"updatedAt" validate:"required"`		// 时间戳, 用于排序, 采用lastID排序
+	UpdatedAt		int64					`json:"updatedAt"`		// 时间戳, 用于排序, 采用lastID排序
 	NickName		string				`json:"nickName" gorm:"-"`
 	Avatar			string				`json:"avatar" gorm:"-"`
 	AnswerID		uint					`json:"answerID"`

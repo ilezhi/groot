@@ -1,15 +1,16 @@
 package services
 
 import (
-	"groot/db"
+	"time"
+	sql "groot/db"
 	. "groot/models"
 )
 
 type ITopic interface {
-	Find(lastID uint, size int) ([]*Topic, error)
-	FindAwesome(lastID uint, size int) ([]*Topic, error)
-
+	Find(lastID int64, size int) ([]*Topic, error)
+	FindAwesome(lastID int64, size int) ([]*Topic, error)
 	FindByID(id uint) (*Topic, error)
+	FindListByQuery(lastID int64, size int, query map[string]interface{})(map[string]interface{}, error)
 	ByID(id uint) (*Topic, error)
 	Create(topic *Topic, tags *[]uint) error
 	FindAndUpdate(id uint, content string, tags *[]uint) (*Topic, error)
@@ -33,18 +34,28 @@ var TopicService = topicService{}
 /**
  * 获取topic list
  */
-func (ts *topicService) Find(lastID uint, size int) ([]*Topic, error) {
+func (ts *topicService) Find(lastID int64, size int) ([]*Topic, error) {
 	var topics []*Topic
-	err := db.DB.Order("updated_at desc").Where("updated_at >= ? AND issue = ?", lastID, true).Limit(size).Find(&topics).Error
+
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
+	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = ?", lastID, true).Limit(size).Find(&topics).Error
 	return topics, err
 }
 
 /**
  *
  */
-func (ts *topicService) FindAwesome(lastID uint, size int) ([]*Topic, error) {
+func (ts *topicService) FindAwesome(lastID int64, size int) ([]*Topic, error) {
 	var topics []*Topic
-	err := db.DB.Order("updated_at desc").Where("updated_at >= ? AND issue = 1 AND Awesome = 1").Limit(size).Find(&topics).Error
+
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
+	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1 AND awesome = 1", lastID).Limit(size).Find(&topics).Error
 	return topics, err
 }
 
@@ -65,10 +76,35 @@ func (ts *topicService) FindByID(id uint) (*Topic, error) {
 	return topic, err
 }
 
+func (ts *topicService) FindListByQuery(lastID int64, size int, query map[string]interface{}) (map[string]interface{}, error) {
+	var topics []*Topic
+
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
+	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1", lastID).Where(query).Limit(size).Find(&topics).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取tag
+	err = TagService.FindByTopics(topics)
+	count := ts.Count(query)
+
+	data := map[string]interface{}{
+		"total": count,
+		"list": topics,
+	}
+
+	return data, err
+}
+
 func (ts *topicService) ByID(id uint) (*Topic, error) {
 	var topic Topic
 
-	err := db.DB.First(&topic, id).Error
+	err := sql.DB.First(&topic, id).Error
 
 	return &topic, err	
 }
@@ -78,7 +114,8 @@ func (ts *topicService) ByID(id uint) (*Topic, error) {
  */
 func (ts *topicService) Create(topic *Topic, tags *[]uint) error {
 	// fmt.Println("service", topic)
-	tx := db.DB.Begin()
+	topic.UpdatedAt = time.Now().Unix()
+	tx := sql.DB.Begin()
 
 	err := tx.Create(topic).Error
 	if err != nil {
@@ -98,18 +135,19 @@ func (ts *topicService) Create(topic *Topic, tags *[]uint) error {
 }
 
 func (ts *topicService) FindAndUpdate(id uint, content string , tags *[]uint) (*Topic, error) {
-	tx := db.DB.Begin()
+	tx := sql.DB.Begin()
 
 	var topic Topic
-	err := db.DB.First(&topic, id).Error
+	err := sql.DB.First(&topic, id).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
 	topic.Content = content
+	topic.UpdatedAt = time.Now().Unix()
 
-	err =	db.DB.Save(&topic).Error
+	err =	sql.DB.Save(&topic).Error
 
 	if err != nil {
 		tx.Rollback()
@@ -140,7 +178,7 @@ func (ts *topicService) FindAndUpdate(id uint, content string , tags *[]uint) (*
 }
 
 func (ts *topicService) DeleteByID(id uint) error {
-	return db.DB.Where("id = ?", id).Delete(Topic{}).Error
+	return sql.DB.Where("id = ?", id).Delete(Topic{}).Error
 }
 
 func (ts *topicService) saveTag(id uint, tags *[]uint) error {
@@ -150,7 +188,7 @@ func (ts *topicService) saveTag(id uint, tags *[]uint) error {
 			TagID: tid,
 		}
 
-		err := db.DB.Create(tag).Error
+		err := sql.DB.Create(tag).Error
 
 		if err != nil {
 			return err
@@ -167,13 +205,13 @@ func (ts *topicService) FindAndUpdateColumns(id uint, columns interface{}) (*Top
 		return nil, err
 	}
 
-	err = db.DB.Model(topic).UpdateColumns(columns).Error
+	err = sql.DB.Model(topic).UpdateColumns(columns).Error
 
 	return topic, err
 }
 
 func (ts *topicService) Count(query map[string]interface{}) int {
 	var count int
-	db.DB.Model(&Topic{}).Where(query).Count(&count)
+	sql.DB.Model(&Topic{}).Where(query).Count(&count)
 	return count
 }
