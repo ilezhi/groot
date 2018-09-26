@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"groot/tools"
+	"groot/middleware"
 	"groot/models"
 	. "groot/services"
 )
 
-func Tags(ctx *tools.Context) {
+func Tags(ctx *middleware.Context) {
 	tags, err := TagService.Find()
 
 	if err != nil {
@@ -17,7 +17,7 @@ func Tags(ctx *tools.Context) {
 	ctx.Go(tags)
 }
 
-func Tag(ctx *tools.Context) {
+func Tag(ctx *middleware.Context) {
 	id, err := ctx.Params().GetInt("id")
 
 	if err != nil {
@@ -35,7 +35,7 @@ func Tag(ctx *tools.Context) {
 	ctx.Go(tag)
 }
 
-func SearchTag(ctx *tools.Context) {
+func SearchTag(ctx *middleware.Context) {
 	name := ctx.Params().Get("name")
 
 	if name == "all" {
@@ -48,7 +48,7 @@ func SearchTag(ctx *tools.Context) {
 	ctx.Go(tags)
 }
 
-func CreateTag(ctx *tools.Context) {
+func CreateTag(ctx *middleware.Context) {
 	var tag models.Tag
 	
 	err := ctx.ReadJSON(&tag)

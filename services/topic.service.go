@@ -7,12 +7,14 @@ import (
 )
 
 type ITopic interface {
-	Find(lastID int64, size int) ([]*Topic, error)
-	FindAwesome(lastID int64, size int) ([]*Topic, error)
+	Find(lastID int64) ([]*Topic, error)
 	FindByID(id uint) (*Topic, error)
-	FindListByQuery(lastID int64, size int, query map[string]interface{})(map[string]interface{}, error)
+	FindByQuery(lastID int64, query map[string]interface{}) ([]*Topic, error)
 	ByID(id uint) (*Topic, error)
+	FindQuestion(userID uint, lastID int64) ([]*Topic, error)
+	FindAnswer(userID uint, lastID int64) ([]*Topic, error)
 	Create(topic *Topic, tags *[]uint) error
+	Update(topic *Topic, params *TopicParams) error
 	FindAndUpdate(id uint, content string, tags *[]uint) (*Topic, error)
 	DeleteByID(id uint) error
 	// 保存成草稿
@@ -25,65 +27,55 @@ type ITopic interface {
 	saveTag(id uint, tags *[]uint) error
 	FindAndUpdateColumns(id uint, columns interface{}) (*Topic, error)
 	Count(query map[string]interface{}) int
+
+	// 收藏
+	Favor(favor *Favor) (bool, error)
 }
 
-type topicService struct {}
+type topicService struct {
+	size int
+}
 
-var TopicService = topicService{}
+var TopicService = topicService{size: 50}
 
 /**
  * 获取topic list
  */
-func (ts *topicService) Find(lastID int64, size int) ([]*Topic, error) {
+func (ts *topicService) Find(lastID int64) ([]*Topic, error) {
 	var topics []*Topic
 
 	if lastID == -1 {
 		lastID = time.Now().Unix()
 	}
 
-	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = ?", lastID, true).Limit(size).Find(&topics).Error
+	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = ?", lastID, true).Limit(ts.size).Find(&topics).Error
 	return topics, err
 }
 
-/**
- *
- */
-func (ts *topicService) FindAwesome(lastID int64, size int) ([]*Topic, error) {
-	var topics []*Topic
-
-	if lastID == -1 {
-		lastID = time.Now().Unix()
-	}
-
-	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1 AND awesome = 1", lastID).Limit(size).Find(&topics).Error
-	return topics, err
-}
 
 /**
  * 根据id获取topic, 同时获取tags
  */
 func (ts *topicService) FindByID(id uint) (*Topic, error) {
-	var tags []*Tag
-
 	topic, err := ts.ByID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	tags, err = TagService.FindByTopicID(id)
+	tags, err := TagService.FindByTopicID(id)
 	topic.Tags = tags
 
 	return topic, err
 }
 
-func (ts *topicService) FindListByQuery(lastID int64, size int, query map[string]interface{}) (map[string]interface{}, error) {
+func (ts *topicService) FindByQuery(lastID int64, query map[string]interface{}) ([]*Topic, error) {
 	var topics []*Topic
 
 	if lastID == -1 {
 		lastID = time.Now().Unix()
 	}
 
-	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1", lastID).Where(query).Limit(size).Find(&topics).Error
+	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1", lastID).Where(query).Limit(ts.size).Find(&topics).Error
 
 	if err != nil {
 		return nil, err
@@ -91,14 +83,7 @@ func (ts *topicService) FindListByQuery(lastID int64, size int, query map[string
 
 	// 获取tag
 	err = TagService.FindByTopics(topics)
-	count := ts.Count(query)
-
-	data := map[string]interface{}{
-		"total": count,
-		"list": topics,
-	}
-
-	return data, err
+	return topics, err
 }
 
 func (ts *topicService) ByID(id uint) (*Topic, error) {
@@ -107,6 +92,39 @@ func (ts *topicService) ByID(id uint) (*Topic, error) {
 	err := sql.DB.First(&topic, id).Error
 
 	return &topic, err	
+}
+
+/**
+ * 我的提问(已解决)
+ */ 
+func (ts *topicService) FindQuestion(userID uint, lastID int64) ([]*Topic, error) {
+	var topics []*Topic
+
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
+	err := sql.DB.Table("topics").Order("updated_at desc").Where("issue = 1 AND answer_id != 0 AND author_id = ?", userID).Where("updated_at < ?", lastID).Limit(ts.size).Scan(&topics).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = TagService.FindByTopics(topics)
+	return topics, err
+}
+
+/**
+ * 我的回答被设置为答案
+ */
+func (ts *topicService) FindAnswer(userID uint, lastID int64) ([]*Topic, error) {
+	var topics []*Topic
+
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
+	err := sql.DB.Table("topics t").Select("t.*").Joins("INNER JOIN comments c ON t.answer_id = c.id AND c.author_id = ?", userID).Where("t.issue = 1 AND t.updated_at < ?", lastID).Order("t.updated_at desc").Limit(ts.size).Scan(&topics).Error
+	return topics, err
 }
 
 /**
@@ -134,47 +152,44 @@ func (ts *topicService) Create(topic *Topic, tags *[]uint) error {
 	return nil
 }
 
-func (ts *topicService) FindAndUpdate(id uint, content string , tags *[]uint) (*Topic, error) {
+/**
+ * 更新话题
+ * 更新content和tags
+ */
+func (ts *topicService) Update(topic *Topic, params *TopicParams) error {
+	topic.Content = params.Content
+	id := topic.ID
+
 	tx := sql.DB.Begin()
 
-	var topic Topic
-	err := sql.DB.First(&topic, id).Error
+	err := topic.Update()
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
-	topic.Content = content
-	topic.UpdatedAt = time.Now().Unix()
-
-	err =	sql.DB.Save(&topic).Error
-
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
+	// 删除原tag
 	err = TagService.DeleteByTopicID(id)
-
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
-	err = ts.saveTag(id, tags)
-	
+	// 添加新tag
+	err = ts.saveTag(id, &params.Tags)
 	if err != nil {
 		tx.Rollback()
-		return nil, err
+		return err
 	}
 
 	topic.Tags, err = TagService.FindByTopicID(id)
-
 	if err != nil {
-		return nil, err
+		tx.Rollback()
+		return err
 	}
 
-	return &topic, nil
+	tx.Commit()
+	return nil
 }
 
 func (ts *topicService) DeleteByID(id uint) error {
@@ -214,4 +229,19 @@ func (ts *topicService) Count(query map[string]interface{}) int {
 	var count int
 	sql.DB.Model(&Topic{}).Where(query).Count(&count)
 	return count
+}
+
+func (ts *topicService) Favor(favor *Favor) (bool, error) {
+	var exist Favor
+
+	err := sql.DB.Where(favor).Find(&exist).Error
+	if err != nil {
+		// 收藏
+		err = sql.DB.Create(favor).Error
+		return true, err
+	}
+
+	// 取消收藏
+	err = sql.DB.Delete(favor).Error
+	return false, err
 }

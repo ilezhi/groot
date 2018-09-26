@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
+	"time"
 	"gopkg.in/go-playground/validator.v9"
-	mysql "groot/db"
+	sql "groot/db"
 )
 
 type TopicParams struct {
@@ -40,5 +41,12 @@ func (topic *Topic) Validate() error {
 }
 
 func (topic *Topic) UpdateView() error {
-	return mysql.DB.Model(topic).Update("view", topic.View).Error
+	return sql.DB.Model(topic).Update("view", topic.View).Error
+}
+
+func (topic *Topic) Update() error {
+	now := time.Now().Unix()
+	topic.UpdatedAt = now
+
+	return sql.DB.Save(topic).Error
 }

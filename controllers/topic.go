@@ -6,22 +6,21 @@ import (
 	"fmt"
 	"groot/models"
 	. "groot/services"
-	"groot/tools"
+	"groot/middleware"
 )
 
 /**
  * 获取topic list
  */
-func Topics(ctx *tools.Context) {
+func Topics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
-	size, _ := ctx.URLParamInt("size")
 
 	num := rand.Intn(10)
 	fmt.Println("int", num)
 	time.Sleep(time.Duration(num) * time.Second)
 
 	query := map[string]interface{}{"issue": 1}
-	topics, err := TopicService.FindListByQuery(lastID, size, query)
+	topics, err := TopicService.FindByQuery(lastID, query)
 	if err != nil {
 		ctx.Go(500, "查询失败")
 		return
@@ -33,12 +32,11 @@ func Topics(ctx *tools.Context) {
 /**
  * 精华
  */
-func AwesomeTopics(ctx *tools.Context) {
+func AwesomeTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
-	size, _ := ctx.URLParamInt("size")
 
 	query := map[string]interface{}{"awesome": 1}
-	topics, err := TopicService.FindListByQuery(lastID, size, query)
+	topics, err := TopicService.FindByQuery(lastID, query)
 	if err != nil {
 		ctx.Go(500, "查询失败")
 		return
@@ -47,12 +45,41 @@ func AwesomeTopics(ctx *tools.Context) {
 	ctx.Go(topics)
 }
 
-func MyTopics(ctx *tools.Context) {
+func MyTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
-	size, _ := ctx.URLParamInt("size")
 
-	query := map[string]interface{}{"author_id": 10000}
-	topics, err := TopicService.FindListByQuery(lastID, size, query)
+	user := ctx.Session().Get("user").(*models.User)
+
+	query := map[string]interface{}{"author_id": user.ID}
+	topics, err := TopicService.FindByQuery(lastID, query)
+	if err != nil {
+		fmt.Println("err", err)
+		ctx.Go(500, "查询失败")
+		return
+	}
+
+	ctx.Go(topics)
+}
+
+func QTopics(ctx *middleware.Context) {
+	lastID, _ := ctx.URLParamInt64("lastID")
+
+	user := ctx.Session().Get("user").(*models.User)
+	topics, err := TopicService.FindQuestion(user.ID, lastID)
+	if err != nil {
+		fmt.Println("err", err)
+		ctx.Go(500, "查询失败")
+		return
+	}
+
+	ctx.Go(topics)
+}
+
+func ATopics(ctx *middleware.Context) {
+	lastID, _ := ctx.URLParamInt64("lastID")
+
+	user := ctx.Session().Get("user").(*models.User)
+	topics, err := TopicService.FindAnswer(user.ID, lastID)
 	if err != nil {
 		fmt.Println("err", err)
 		ctx.Go(500, "查询失败")
@@ -65,7 +92,7 @@ func MyTopics(ctx *tools.Context) {
 /**
  * 根据id获取话题
  */
-func Topic(ctx *tools.Context) {
+func Topic(ctx *middleware.Context) {
 	id, err := ctx.Params().GetInt("id")
 	
 	if err != nil {
@@ -74,9 +101,8 @@ func Topic(ctx *tools.Context) {
 	}
 
 	topic, err := TopicService.FindByID(uint(id))
-
 	if err != nil {
-		ctx.Go(500, "查询话题失败")
+		ctx.Go(500, "话题不存在")
 		return
 	}
 
@@ -89,7 +115,7 @@ func Topic(ctx *tools.Context) {
 /**
  * 新增
  */
-func CreateTopic(ctx *tools.Context) {
+func CreateTopic(ctx *middleware.Context) {
 	var params models.TopicParams
 	var topic models.Topic
 	err := ctx.ReadJSON(&params)
@@ -99,10 +125,12 @@ func CreateTopic(ctx *tools.Context) {
 		return
 	}
 
+	user := ctx.Session().Get("user").(*models.User)
+
 	topic.Title = params.Title
 	topic.Content = params.Content
 	topic.Shared = params.Shared
-	topic.AuthorID= 4
+	topic.AuthorID= user.ID
 	err = topic.Validate()
 
 	if err != nil {
@@ -132,19 +160,32 @@ func CreateTopic(ctx *tools.Context) {
 /**
  * 更新
  */
-func UpdateTopic(ctx *tools.Context) {
-	id, err := ctx.Params().GetInt("id")
+func UpdateTopic(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+
+	// 根据id获取topic
+	var params models.TopicParams
+	err := ctx.ReadJSON(&params)
 
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
 	}
 
-	// 根据id获取topic
-	var params models.TopicParams
-	err = ctx.ReadJSON(&params)
-	topic, err := TopicService.FindAndUpdate(uint(id), params.Content, &params.Tags)
+	topic, err := TopicService.ByID(uint(id))
 
+	if err != nil {
+		ctx.Go(500, "话题不存在")
+		return
+	}
+
+	user := ctx.Session().Get("user").(*models.User)
+	if topic.AuthorID != user.ID {
+		ctx.Go(403, "禁止修改其他人的话题")
+		return
+	}
+
+	err = TopicService.Update(topic, &params)
 	if err != nil {
 		ctx.Go(500, "更新失败")
 		return
@@ -153,14 +194,10 @@ func UpdateTopic(ctx *tools.Context) {
 	ctx.Go(topic)
 }
 
-func TrashTopic(ctx *tools.Context) {
-	id, err := ctx.Params().GetInt("id")
-	if err != nil {
-		ctx.Go(406, "参数有误")
-		return
-	}
+func TrashTopic(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
 
-	err = TopicService.DeleteByID(uint(id))
+	err := TopicService.DeleteByID(uint(id))
 	if err != nil {
 		ctx.Go(500, "删除失败")
 		return
@@ -170,90 +207,26 @@ func TrashTopic(ctx *tools.Context) {
 }
 
 /**
- * 精华
- */
-func AwesomeTopic(ctx *tools.Context) {
-	id, err := ctx.Params().GetInt("id")
-
-	if err != nil {
-		ctx.Go(406, "参数有误")
-		return
-	}
-
-	params := map[string]bool{"awesome": false}
-	err = ctx.ReadJSON(&params)
-
-	if err != nil {
-		ctx.Go(406, "body 参数有误")
-		return
-	}
-
-	topic, err := TopicService.FindAndUpdateColumns(uint(id), params)
-
-	if err != nil {
-		ctx.Go(500, "更新失败")
-		return
-	}
-
-	ctx.Go(topic)
-}
-
-/**
- * 分享
- */
-func ShareTopic(ctx *tools.Context) {
-	id, err := ctx.Params().GetInt("id")
-
-	if err != nil {
-		ctx.Go(406, "参数有误")
-		return
-	}
-
-	params := map[string]bool{"shared": false}
-	err = ctx.ReadJSON(&params)
-	if err != nil {
-		ctx.Go(406, "body 参数有误")
-		return
-	}
-
-	topic, err := TopicService.FindAndUpdateColumns(uint(id), params)
-	if err != nil {
-		ctx.Go(500, "更新失败")
-		return
-	}
-	
-	ctx.Go(topic)
-}
-
-/**
- * 置顶
- */
-func TopTopic(ctx *tools.Context) {
-	id, err := ctx.Params().GetInt("id")
-	if err != nil {
-		ctx.Go(406, "参数有误")
-		return
-	}
-
-	params := map[string]bool{"top": false}
-	err = ctx.ReadJSON(&params)
-	if err != nil {
-		ctx.Go(406, "body 参数有误")
-		return
-	}
-
-	topic, err := TopicService.FindAndUpdateColumns(uint(id), params)
-	if err != nil {
-		ctx.Go(500, "更新失败")
-		return
-	}
-
-	ctx.Go(topic)
-}
-
-/**
  * 收藏
  */
-func FavorTopic(ctx *tools.Context) {
+func FavorTopic(ctx *middleware.Context) {
+	var favor models.Favor
+	err := ctx.ReadJSON(&favor)
+	if err != nil {
+		fmt.Println("error", err)
+		ctx.Go(406, "参数有误")
+		return
+	}
 
+	user := ctx.Session().Get("user").(*models.User)
+	favor.UserID = user.ID
+
+	isFavor, err := TopicService.Favor(&favor)
+	if err != nil {
+		fmt.Println("err", err)
+		ctx.Go(500, "操作失败")
+		return
+	}
+
+	ctx.Go(isFavor)
 }

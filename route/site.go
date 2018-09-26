@@ -5,26 +5,34 @@ import (
 
 	"groot/controllers"
 
-	"groot/tools"
+	"groot/middleware"
 )
 
 func RegisterSite(app iris.Party) {
-	app.Get("/topics/all", tools.Handler(controllers.Topics))
-	app.Get("/topics/awesome", tools.Handler(controllers.AwesomeTopics))
-	// app.Get("/topics/department", tools.Handler(controllers.DetpTopics))
-	app.Get("/topics/my", tools.Handler(controllers.MyTopics))
-	app.Get("/topic/{id:int}", tools.Handler(controllers.Topic))
+	app.Get("/topics/all", middleware.Handler(controllers.Topics))
+	app.Get("/topics/awesome", middleware.Handler(controllers.AwesomeTopics))
+	// app.Get("/topics/department", middleware.Handler(controllers.DetpTopics))
+	app.Get("/topics/my", middleware.Handler(controllers.MyTopics))
+	app.Get("/topics/question", middleware.Handler(controllers.QTopics))
+	app.Get("/topics/answer", middleware.Handler(controllers.ATopics))
+	app.Get("/topic/{id:int}", middleware.Handler(controllers.Topic))
 
-	app.Post("/topic/create", tools.Handler(controllers.CreateTopic))
-	app.Post("/topic/update/{id:int}", tools.Handler(controllers.UpdateTopic))
-	app.Post("/topic/awesome/{id:int}", tools.Handler(controllers.AwesomeTopic))
+	app.Post("/topic/create", middleware.Handler(controllers.CreateTopic))
+	app.Post("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
+	// 收藏
+	app.Post("/topic/favor", middleware.Handler(controllers.FavorTopic))
 
-	app.Get("/tags", tools.Handler(controllers.Tags))
-	app.Get("/tag/{id:int}", tools.Handler(controllers.Tag))
-	app.Post("/tag/create", tools.Handler(controllers.CreateTag))
+	app.Get("/tags", middleware.Handler(controllers.Tags))
+	app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))
+	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 
 	// 搜索相关
-	app.Get("/search/tag/{name:string}", tools.Handler(controllers.SearchTag))
+	app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 
-	app.Post("/user/create", tools.Handler(controllers.CreateUser))
+	// 登录
+	app.Get("/signin", middleware.Handler(controllers.Login))
+	
+	// 用户相关
+	app.Post("/user/create", middleware.Handler(controllers.CreateUser))
+	app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
 }

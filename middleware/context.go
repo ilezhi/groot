@@ -1,12 +1,29 @@
-package tools
+package middleware
 
 import (
+	"time"
 	"sync"
 	"github.com/kataras/iris"
+	"github.com/kataras/iris/sessions"
 )
+
+var cookieNameForSessionID = "mycookiesessionnameid"
+
+type Owner struct {
+	createSess		*sessions.Sessions
+}
+
+var owner = &Owner{
+	createSess: sessions.New(sessions.Config{
+		Cookie: cookieNameForSessionID,
+		Expires: 10 * time.Minute,
+		AllowReclaim: true,
+	}),
+}
 
 type Context struct {
 	iris.Context
+	sess					*sessions.Session
 }
 
 var contextPool = sync.Pool{New: func() interface{} {
@@ -15,7 +32,7 @@ var contextPool = sync.Pool{New: func() interface{} {
 
 func acquire(original iris.Context) *Context {
 	ctx := contextPool.Get().(*Context)
-	ctx.Context = original // set the context to the original one in order to have access to iris's implementation.
+	ctx.Context = original
 	return ctx
 }
 
@@ -29,6 +46,14 @@ func Handler(h func(*Context)) iris.Handler {
 		h(ctx)
 		release(ctx)
 	}
+}
+
+func (ctx *Context) Session() *sessions.Session {
+	if ctx.sess == nil {
+		ctx.sess = owner.createSess.Start(ctx.Context)
+	}
+
+	return ctx.sess
 }
 
 func (ctx *Context) Go(a ...interface{}) {
