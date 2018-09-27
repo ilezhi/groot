@@ -34,6 +34,7 @@ type ITopic interface {
 
 type topicService struct {
 	size int
+	fields string
 }
 
 var TopicService = topicService{size: 50}
@@ -75,7 +76,9 @@ func (ts *topicService) FindByQuery(lastID int64, query map[string]interface{}) 
 		lastID = time.Now().Unix()
 	}
 
-	err := sql.DB.Order("updated_at desc").Where("updated_at < ? AND issue = 1", lastID).Where(query).Limit(ts.size).Find(&topics).Error
+	fields := `id, title, substring(content, 1, 140) as content,
+						view, total_comt, top, awesome, updated_at`
+	err := sql.DB.Select(fields).Order("updated_at desc").Where("updated_at < ? AND issue = 1", lastID).Where(query).Limit(ts.size).Find(&topics).Error
 
 	if err != nil {
 		return nil, err

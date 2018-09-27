@@ -15,7 +15,7 @@ import (
 func Topics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
 
-	num := rand.Intn(10)
+	num := rand.Intn(3)
 	fmt.Println("int", num)
 	time.Sleep(time.Duration(num) * time.Second)
 

@@ -50,18 +50,26 @@ func SearchTag(ctx *middleware.Context) {
 
 func CreateTag(ctx *middleware.Context) {
 	var tag models.Tag
-	
+
 	err := ctx.ReadJSON(&tag)
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
 	}
 
-	tag.AuthorID = 10000
-	err = tag.Save()
+	// 首先判断是否存在
+	t, err := TagService.FindOneByName(tag.Name)
 	if err != nil {
-		ctx.Go(500, "保存失败")
-		return
+		// tag不存在
+		user := ctx.Session().Get("user").(*models.User)
+		tag.AuthorID = user.ID
+		err = tag.Save()
+		if err != nil {
+			ctx.Go(500, "保存失败")
+			return
+		}
+	} else {
+		tag = t
 	}
 
 	ctx.Go(tag)

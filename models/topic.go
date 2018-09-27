@@ -16,7 +16,7 @@ type TopicParams struct {
 
 type Topic struct {
 	BaseModel
-	Title				string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=2,max=30,required"`
+	Title				string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=10,max=30,required"`
 	Content			string				`json:"content" gorm:"type:text"`
 	Tags				[]*Tag				`json:"tags,-" gorm:"-"`
 	Shared			bool					`json:"shared" gorm:"default:'0'"`
@@ -32,7 +32,7 @@ type Topic struct {
 	NickName		string				`json:"nickName" gorm:"-"`
 	Avatar			string				`json:"avatar" gorm:"-"`
 	AnswerID		uint					`json:"answerID"`
-	Answer			*Comment			`json:"answer" gorm:"-"`			
+	Answer			*Comment			`json:"answer" gorm:"-"`
 }
 
 func (topic *Topic) Validate() error {

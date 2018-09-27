@@ -1,7 +1,7 @@
 package services
 
 import (
-	. "groot/db"
+	sql "groot/db"
 	. "groot/models"
 )
 
@@ -11,6 +11,7 @@ type ITag interface {
 	FindByIDs(ids []uint) ([]*Tag, error)
 	FindByTopicID(id uint) (*Tag, error)
 	FindByName(name string) ([]*Tag, error)
+	FindOneByName(name string) (*Tag, error)
 	FindByTopics(topics []*Topic)(error)
 	Create(tag *Tag) error
 	DeleteByTopicID(id uint) error
@@ -22,7 +23,7 @@ var TagService = tagService{}
 
 func (ts *tagService) Find() ([]*Tag, error) {
 	var tags []*Tag
-	err := DB.Find(&tags).Error
+	err := sql.DB.Find(&tags).Error
 
 	return tags, err
 }
@@ -30,24 +31,25 @@ func (ts *tagService) Find() ([]*Tag, error) {
 func (ts *tagService) FindByID(id uint) (*Tag, error) {
 	var tag Tag
 
-	err := DB.Find(&tag, id).Error
+	err := sql.DB.Find(&tag, id).Error
 
 	return &tag, err
 }
 
 func (ts *tagService) FindByIDs(ids []uint) ([]*Tag, error) {
 	var tags []*Tag
-	err := DB.Where("id IN (?)", ids).Find(&tags).Error
+	err := sql.DB.Where("id IN (?)", ids).Find(&tags).Error
 
 	return tags, err
 }
 
+
 func (ts *tagService) FindByTopicID(id uint) ([]*Tag, error) {
 	var tags []*Tag
-	sql := `select t.id, t.name from tags t
+	query := `select t.id, t.name from tags t
 					inner join topic_tags tt 
 					on tt.tag_id = t.id and tt.topic_id = ?`
-	err := DB.Raw(sql, id).Scan(&tags).Error
+	err := sql.DB.Raw(query, id).Scan(&tags).Error
 	if err != nil {
 		return nil, err
 	}
@@ -58,9 +60,16 @@ func (ts *tagService) FindByTopicID(id uint) ([]*Tag, error) {
 func (ts *tagService) FindByName(name string) ([]*Tag, error) {
 	var tags []*Tag
 
-	err := DB.Where("name LIKE ?", "%" + name + "%").Find(&tags).Error
+	err := sql.DB.Where("name LIKE ?", "%" + name + "%").Find(&tags).Error
 
 	return tags, err
+}
+
+func (ts *tagService) FindOneByName(name string) (Tag, error) {
+	var tag Tag
+
+	err := sql.DB.Where("name = ?", name).Find(&tag).Error
+	return tag, err
 }
 
 func (ts *tagService) FindByTopics(topics []*Topic)(error) {
@@ -77,9 +86,9 @@ func (ts *tagService) FindByTopics(topics []*Topic)(error) {
 }
 
 func (ts *tagService) Create(tag *Tag) error {
-	return DB.Create(tag).Error
+	return sql.DB.Create(tag).Error
 }
 
 func (ts *tagService) DeleteByTopicID(id uint) error {
-	return DB.Delete(&TopicTag{}, "topic_id = ?", id).Error
+	return sql.DB.Delete(&TopicTag{}, "topic_id = ?", id).Error
 }
