@@ -22,9 +22,9 @@ type Topic struct {
 	Shared			bool					`json:"shared" gorm:"default:'0'"`
 	AuthorID		uint					`json:"authorID" gorm:"index" validate:"required,numeric"`
 	View				uint					`json:"view" gorm:"default:'0'"`			// 浏览量
-	TotalComt		uint					`json:"totalComt" gorm:"default:'0'"`			// 评论和回复总数
-	TotalGood		uint					`json:"totalGood" gorm:"default:'0'"`			// 赞数
-	TotalFavor  uint					`json:"totalFavor" gorm:"default:'0'"`			// 收藏数
+	// TotalComt		uint					`json:"totalComt" gorm:"default:'0'"`			// 评论和回复总数
+	// TotalGood		uint					`json:"totalGood" gorm:"default:'0'"`			// 赞数
+	// TotalFavor  uint					`json:"totalFavor" gorm:"default:'0'"`			// 收藏数
 	Top					bool					`json:"top" gorm:"default:'0'"`			// 置顶
 	Awesome			bool					`json:"awesome" gorm:"default:'0'"`		// 精华
 	Issue				bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
@@ -49,4 +49,8 @@ func (topic *Topic) Update() error {
 	topic.UpdatedAt = now
 
 	return sql.DB.Save(topic).Error
+}
+
+func (topic *Topic) IsExist(id uint) bool {
+	return !sql.DB.First(topic, id).RecordNotFound()
 }

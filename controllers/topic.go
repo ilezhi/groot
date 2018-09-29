@@ -230,3 +230,30 @@ func FavorTopic(ctx *middleware.Context) {
 
 	ctx.Go(isFavor)
 }
+
+func Comment(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	exist := topic.IsExist(uint(id))
+	if !exist {
+		ctx.Go(406, "帖子不存在")
+		return
+	}
+
+	var comt models.Comment
+	user := ctx.Session().Get("user").(*models.User)
+	ctx.ReadJSON(&comt)
+	if comt.Content == "" {
+		ctx.Go(406, "回复内容不能为空")
+		return
+	}
+
+	comt.AuthorID = user.ID
+	err := comt.Save()
+	if err != nil {
+		ctx.Go(500, "评论失败")
+		return
+	}
+
+	ctx.Go(comt)
+}

@@ -26,6 +26,9 @@ func RegisterSite(app iris.Party) {
 	app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))
 	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 
+	// 评论
+	app.Post("/topic/{id:int}/comment", middleware.Handler(controllers.Comment))
+
 	// 搜索相关
 	app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 
