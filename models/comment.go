@@ -12,7 +12,6 @@ type Comment struct {
 	AuthorID	uint				`json:"authorID"`
 	TopicID		uint				`json:"topicID" validate:"required"`
 	UpdatedAt int64				`json:"updatedAt"`
-	// TotalGood	int					`json:"totalGood" gorm:"default:'0'"`
 	NickName	string			`json:"nickName" gorm:"-"`
 	Avatar		string			`json:"avatar" gorm:"-"`
 }

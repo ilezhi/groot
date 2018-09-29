@@ -15,7 +15,7 @@ type User struct {
 	Birthday	string		`json:"birthday" gorm:"type:char(10)"`
 	DeptID		uint			`json:"deptID"`
 	Token			int64			`json:"token"`		
-	SecretKey	string
+	SecretKey	string		`json:"secreKey"`
 	IsAdmin		bool			`json:"isAdmin" gorm:"default:'0'"`
 	IsVerify	bool			`json:"isVerify" gorm:"default:'0'"`		// 默认账号需要邮箱激活验证
 	IsLock		bool			`json:"isLock" gorm:"default:'0'"`		// 0: 不锁, 1:锁定

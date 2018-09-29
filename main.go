@@ -24,35 +24,33 @@ import (
 // 		os.Exit(2)
 // 	}
 
-	// user := User{
-	// 	BaseModel: BaseModel{ID: 10000}
-	// 	Name: "董明",
-	// 	Nickname: "",
-	// 	Email: "dongmingming@renrenche.com",
-	// 	IsAdmin: true,
-	// 	IsVerify: true,
-	// }
-
-	// err = DB.Create(&user).Error
-
-	// if err != nil {
-	// 	fmt.Println("新增用户错误", err)
-	// }
-	// fmt.Println(user)
-
-	// err := user.Validate()
-	// if err != nil {
-	// 	fmt.Println("验证失败", err)
-	// } else {
-	// 	fmt.Println("验证成功")
-	// }
+// 	if err != nil {
+// 		fmt.Println("验证失败", err)
+// 	} else {
+// 		fmt.Println("验证成功")
+// 	}
 // 	err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
-// 		&ProjectMember{}, &Good{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
+// 		&ProjectMember{}, &Like{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
 
 // 	if err != nil {
 // 		fmt.Println("创建表格失败", err)
 // 		os.Exit(2)
 // 	}
+
+// 	user := User{
+// 		Name: "董明",
+// 		Nickname: "weels",
+// 		Email: "dongmingming@renrenche.com",
+// 		IsAdmin: true,
+// 		IsVerify: true,
+// 	}
+
+// 	err = DB.Create(&user).Error
+
+// 	if err != nil {
+// 		fmt.Println("新增用户错误", err)
+// 	}
+// 	fmt.Println(user)
 // }
 
 
