@@ -23,10 +23,9 @@ func RegisterSite(app iris.Party) {
 	app.Get("/topic/{id:int}", middleware.Handler(controllers.Topic))
 
 	// 新增, 更新, 收藏 删除帖子
-	app.Post("/topic/create/{id:int}", middleware.Handler(controllers.PublishTopic))
+	app.Post("/topic/create", middleware.Handler(controllers.PublishTopic))
 	app.Put("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
 	app.Post("/topic/favor/{id:int}", middleware.Handler(controllers.FavorTopic))
-	// app.Post("/topic/create", middleware.Handler(controllers.PublishTopic))
 	// app.Post("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
 	// // 收藏
 	// app.Post("/topic/favor", middleware.Handler(controllers.FavorTopic))
