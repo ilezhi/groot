@@ -186,6 +186,29 @@ func (topic *Topic) Update(tags *[]uint) error {
 	return nil
 }
 
+func (topic *Topic) GetComments() (comments []*Comment, err error) {
+	fields := `c.content, c.topic_id, c.updated_at, c.author_id
+							u.nickname, u.avatar`
+	
+	joins := "INNER JOIN users u ON c.author_id = u.id"
+	order := "c.created_at ASC"
+
+	err = sql.DB.Table("comments c").Select(fields).Joins(joins).Order(order).Scan(&comments).Error
+	if err != nil {
+		return
+	}
+
+	// 获取评论回复
+	for _, comt := range comments {
+		err = comt.GetReplies()
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func PageTopics(lastID int64) *gorm.DB {
 	if lastID == -1 {
 		lastID = time.Now().Unix()

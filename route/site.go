@@ -37,6 +37,9 @@ func RegisterSite(app iris.Party) {
 	// // 搜索相关
 	// app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 
+	// 获取帖子评论回复
+	app.Get("/comments/{id:int}", middleware.Handler(controllers.Comments))
+
 	// // 登录
 	app.Get("/signin", middleware.Handler(controllers.SignIn))
 	
