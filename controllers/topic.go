@@ -225,7 +225,7 @@ func PublishTopic(ctx *middleware.Context) {
  */
 func UpdateTopic(ctx *middleware.Context) {
 	var params TopicParams
-	err := ctx.ReadJSON(params)
+	err := ctx.ReadJSON(&params)
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
@@ -266,9 +266,49 @@ func TrashTopic(ctx *middleware.Context) {
  * 收藏
  */
 func FavorTopic(ctx *middleware.Context) {
-	ctx.Go(200)
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	topic.ID = uint(id)
+
+	isExist := topic.IsExist()
+	if !isExist {
+		ctx.Go(404, "帖子不存在")
+		return
+	}
+
+	var favor models.Favor
+	err := ctx.ReadJSON(&favor)
+	if err != nil {
+		ctx.Go(406, "参数有误")
+		return
+	}
+
+	user := ctx.Session().Get("user").(*models.User)
+	favor.TopicID = uint(id)
+	favor.UserID = user.ID
+	isFavor := favor.IsFavor()
+	if isFavor {
+		// 取消收藏
+		err = favor.Delete()
+		if err != nil {
+			ctx.Go(500, "取消收藏失败")
+			return
+		}
+	} else {
+		// 收藏
+		err = favor.Insert()
+		if err != nil {
+			ctx.Go(500, "收藏失败")
+			return
+		}
+	}	
+		
+	ctx.Go(id)
 }
 
+/**
+ * 评论
+ */
 func Comment(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
