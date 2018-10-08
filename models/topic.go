@@ -37,11 +37,13 @@ type Topic struct {
 }
 
 func (topic *Topic) BeforeCreate() error {
+	fmt.Println("before create")
 	topic.UpdatedAt = time.Now().Unix()
 	return nil
 }
 
 func (topic *Topic) BeforeUpdate() error {
+	fmt.Println("before Update")
 	topic.UpdatedAt = time.Now().Unix()
 	return nil
 }
@@ -185,6 +187,10 @@ func (topic *Topic) Update(tags *[]uint) error {
 }
 
 func PageTopics(lastID int64) *gorm.DB {
+	if lastID == -1 {
+		lastID = time.Now().Unix()
+	}
+
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content,
 						t.view, t.top, t.awesome, t.updated_at, t.answer_id, u.avatar, u.nickname`
 
