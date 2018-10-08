@@ -27,15 +27,13 @@ func RegisterSite(app iris.Party) {
 	app.Put("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
 	app.Post("/topic/favor/{id:int}", middleware.Handler(controllers.FavorTopic))
 	app.Post("/topic/like/{id:int}", middleware.Handler(controllers.LikeTopic))
+	app.Post("/topic/comment/{id:int}", middleware.Handler(controllers.Comment))
+	app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
 
 	// app.Get("/tags", middleware.Handler(controllers.Tags))
 	// app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))
 	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
-
-	// 评论
-	app.Post("/topic/comment/{id:int}", middleware.Handler(controllers.Comment))
-	// 回复
-	app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
+	app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
 	// // 搜索相关
 	// app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 

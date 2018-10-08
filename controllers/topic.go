@@ -374,9 +374,8 @@ func Comment(ctx *middleware.Context) {
  * 回复
  */
 func Reply(ctx *middleware.Context) {
-	reply := new(models.Reply)
+	reply := new(models.Reply) 
 	ctx.ReadJSON(reply)
-
 	if reply.Content == "" {
 		ctx.Go(406, "回复内容不能为空")
 		return
