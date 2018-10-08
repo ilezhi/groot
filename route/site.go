@@ -22,13 +22,11 @@ func RegisterSite(app iris.Party) {
 	// 显示帖子详情
 	app.Get("/topic/{id:int}", middleware.Handler(controllers.Topic))
 
-	// 新增, 更新, 收藏 删除帖子
+	// 新增, 更新, 收藏, 点赞, 删除帖子
 	app.Post("/topic/create", middleware.Handler(controllers.PublishTopic))
 	app.Put("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
 	app.Post("/topic/favor/{id:int}", middleware.Handler(controllers.FavorTopic))
-	// app.Post("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
-	// // 收藏
-	// app.Post("/topic/favor", middleware.Handler(controllers.FavorTopic))
+	app.Post("/topic/like/{id:int}", middleware.Handler(controllers.LikeTopic))
 
 	// app.Get("/tags", middleware.Handler(controllers.Tags))
 	// app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))

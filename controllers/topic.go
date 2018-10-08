@@ -307,6 +307,38 @@ func FavorTopic(ctx *middleware.Context) {
 }
 
 /**
+ * 点赞
+ */
+func LikeTopic(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+	like := new(models.Like)
+	user := ctx.Session().Get("user").(*models.User)
+	like.TargetID = uint(id)
+	like.UserID = user.ID
+	like.Type = "topic"
+	
+	isExist := like.IsExist()
+	var err error
+	if isExist {
+		// 取消点赞
+		err = like.Delete()
+
+		if err != nil {
+			ctx.Go(500, "取消点赞失败")
+			return
+		}
+	} else {
+		err = like.Save()
+		if err != nil {
+			ctx.Go(500, "点赞失败")
+			return
+		}
+	}
+
+	ctx.Go(id)
+}
+
+/**
  * 评论
  */
 func Comment(ctx *middleware.Context) {
