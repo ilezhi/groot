@@ -1,7 +1,7 @@
 package models
 
 import (
-	mysql "groot/db"
+	sql "groot/db"
 )
 
 type Tag struct {
@@ -13,5 +13,19 @@ type Tag struct {
 }
 
 func (tag *Tag) Save() error {
-	return mysql.DB.Create(tag).Error
+	return sql.DB.Create(tag).Error
+}
+
+func (tag *Tag) isExist() bool {
+	return !sql.DB.Where("name = ?", tag.Name).Find(tag).RecordNotFound()
+}
+
+func (tag *Tag) FindAndSave() error {
+	isExist := tag.isExist()
+	var err error
+	if !isExist {
+		err = tag.Save()
+	}
+
+	return err
 }

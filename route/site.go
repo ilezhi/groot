@@ -33,7 +33,7 @@ func RegisterSite(app iris.Party) {
 
 	// app.Get("/tags", middleware.Handler(controllers.Tags))
 	// app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))
-	// app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
+	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 
 	// // 评论
 	// app.Post("/topic/{id:int}/comment", middleware.Handler(controllers.Comment))
