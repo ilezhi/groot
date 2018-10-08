@@ -42,7 +42,7 @@ func RegisterSite(app iris.Party) {
 	// app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 
 	// // 登录
-	// app.Get("/signin", middleware.Handler(controllers.Login))
+	app.Get("/signin", middleware.Handler(controllers.SignIn))
 	
 	// // 用户相关
 	// app.Post("/user/create", middleware.Handler(controllers.CreateUser))

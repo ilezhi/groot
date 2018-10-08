@@ -1,7 +1,10 @@
 package models
 
-import "fmt"
-import "gopkg.in/go-playground/validator.v9"
+import (
+	"fmt"
+	"gopkg.in/go-playground/validator.v9"
+	sql "groot/db"
+)
 
 type User struct {
 	BaseModel
@@ -27,4 +30,8 @@ func (user *User) Validate() error {
 	err := valid.Struct(user)
 
 	return err
+}
+
+func (user *User) Find() error {
+	return sql.DB.First(user, user.ID).Error
 }

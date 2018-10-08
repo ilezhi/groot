@@ -14,7 +14,6 @@ type Favor struct {
 	CategoryID	uint					`json:"categoryID"`
 }
 
-
 func (favor *Favor) IsFavor() bool {
 	return !sql.DB.Where(favor).First(favor).RecordNotFound()
 }
