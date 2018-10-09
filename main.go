@@ -65,7 +65,6 @@ func main() {
 	app.Use(func(ctx iris.Context) {
 		ctx.Next()
 
-		fmt.Println("status", ctx.GetStatusCode())
 		code, _ := ctx.Values().GetInt("code")
 		message := ctx.Values().GetString("message")
 		data := ctx.Values().Get("data")

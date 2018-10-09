@@ -175,7 +175,7 @@ func Topic(ctx *middleware.Context) {
 		return
 	}
 
-	err := topic.GetTags()
+	err := topic.FindByID()
 	if err != nil {
 		ctx.Go(500, "获取帖子标签失败")
 		return
@@ -202,6 +202,7 @@ func PublishTopic(ctx *middleware.Context) {
 	topic.Content = params.Content
 	topic.Shared = params.Shared
 	topic.AuthorID= user.ID
+	topic.Issue = true
 
 	err = topic.Validate()
 	if err != nil {
@@ -211,7 +212,7 @@ func PublishTopic(ctx *middleware.Context) {
 	}
 
 	// 添加话题和tag
-	err = topic.Insert(&params.Tags)
+	err = topic.Save(&params.Tags)
 	if err != nil {
 		ctx.Go(500, "新增失败")
 		return
@@ -286,7 +287,7 @@ func FavorTopic(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 	favor.TopicID = uint(id)
 	favor.UserID = user.ID
-	isFavor := favor.IsFavor()
+	isFavor := favor.IsExist()
 	if isFavor {
 		// 取消收藏
 		err = favor.Delete()

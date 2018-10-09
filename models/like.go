@@ -23,3 +23,8 @@ func (like *Like) Save() error {
 func (like *Like) Delete() error {
 	return sql.DB.Delete(like).Error
 }
+
+func (like *Like) Count() (count int) {
+	sql.DB.Model(like).Where("target_id = ? AND type = ?", like.TargetID, like.Type).Count(&count)
+	return
+}

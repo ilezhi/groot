@@ -16,9 +16,27 @@ type Comment struct {
 	Avatar		string			`json:"avatar" gorm:"-"`
 }
 
-func (comt *Comment) Save() error {
-	comt.UpdatedAt = time.Now().Unix()
-	return sql.DB.Create(comt).Error
+func (comt *Comment) Save(topic *Topic) error {
+	now := time.Now().Unix()
+	comt.UpdatedAt = now
+
+	tx := sql.DB.Begin()
+
+	err := tx.Create(comt).Error
+	if err != nil {
+		tx.Rollback()
+		return err	
+	}
+
+	topic.UpdatedAt = now
+	err = tx.Model(topic).Update("updated_at").Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
 
 func (comt *Comment) Update() error {
@@ -44,4 +62,14 @@ func (c *Comment) GetReplies() error {
 	}
 	c.Replies = replies
 	return nil
+}
+
+func (c *Comment) Count() (count int) {
+	comtCount := 0
+	sql.DB.Model(&Comment{}).Where("topic_id = ?", c.TopicID).Count(&comtCount)
+
+	reply := new(Reply)
+	reply.TopicID = c.TopicID
+	replyCount := reply.Count()
+	return comtCount + replyCount
 }

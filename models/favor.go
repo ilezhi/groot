@@ -14,7 +14,7 @@ type Favor struct {
 	CategoryID	uint					`json:"categoryID"`
 }
 
-func (favor *Favor) IsFavor() bool {
+func (favor *Favor) IsExist() bool {
 	return !sql.DB.Where(favor).First(favor).RecordNotFound()
 }
 
@@ -24,4 +24,9 @@ func (favor *Favor) Delete() error {
 
 func (favor *Favor) Insert() error {
 	return sql.DB.Create(favor).Error
+}
+
+func (favor *Favor) Count() (count int) {
+	sql.DB.Model(favor).Where("topic_id = ?", favor.TopicID).Count(&count)
+	return
 }

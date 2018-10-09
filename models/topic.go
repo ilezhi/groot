@@ -32,8 +32,10 @@ type Topic struct {
 	LikeCount		int						`json:"likeCount" gorm:"-"`
 	ComtCount		int						`json:"comtCount" gorm:"-"`
 	FavorCount	int						`json:"favorCount" gorm:"-"`
-	NickName		string				`json:"nickName" gorm:"-"`
+	Nickname		string				`json:"nickName" gorm:"-"`
 	Avatar			string				`json:"avatar" gorm:"-"`
+	IsLike			bool					`json:"isLike" gorm:"-"`
+	IsFavor			bool					`json:"isFavor" gorm:"-"`
 }
 
 func (topic *Topic) BeforeCreate() error {
@@ -88,6 +90,43 @@ func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
 	return
 }
 
+func (topic *Topic) FindByID() error {
+	fields := `t.*, u.nickname, u.avatar`
+	joins := "INNER JOIN users u ON u.id = t.author_id"
+	err := sql.DB.Table("topic t").Select(fields).Where("t.id = ?", topic.ID).Joins(joins).Scan(topic).Error
+	if err != nil {
+		return err
+	}
+
+	topic.GetCount()
+	err = topic.GetTags()
+	return err
+}
+
+func (topic *Topic) GetCount() {
+	like := new(Like)
+	like.TargetID = topic.ID
+	like.Type = "topic"
+
+	favor := new(Favor)
+	favor.TopicID = topic.ID
+
+	topic.LikeCount = like.Count()
+	topic.FavorCount = favor.Count()
+	topic.IsLike = like.IsExist()
+	topic.IsFavor = favor.IsExist()
+	topic.GetComtCount()
+}
+
+/**
+ * 获取评论总数, 包含回复数量
+ */
+func (topic *Topic) GetComtCount() {
+	comt := new(Comment)
+	comt.TopicID = topic.ID
+	topic.ComtCount = comt.Count()
+}
+
 /**
  * id 分类id
  */
@@ -118,6 +157,10 @@ func (topic *Topic) SearchByPage(where string, val interface{}) (topics []*Topic
 		return
 	}
 
+	for _, t := range topics {
+		t.GetComtCount()
+	}
+
 	err = SetTag(&topics)
 	return
 }
@@ -130,7 +173,7 @@ func (topic *Topic) GetTags() error {
 	return err
 }
 
-func (topic *Topic) Insert(tags *[]uint) error {
+func (topic *Topic) Save(tags *[]uint) error {
 	tx := sql.DB.Begin()
 	err := tx.Create(topic).Error
 	if err != nil {
