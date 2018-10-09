@@ -41,7 +41,7 @@ func RegisterSite(app iris.Party) {
 	app.Get("/comments/{id:int}", middleware.Handler(controllers.Comments))
 
 	// // 登录
-	app.Get("/signin", middleware.Handler(controllers.SignIn))
+	app.Post("/signin", middleware.Handler(controllers.SignIn))
 	
 	// // 用户相关
 	// app.Post("/user/create", middleware.Handler(controllers.CreateUser))

@@ -10,6 +10,8 @@ import (
 	"github.com/kataras/iris/middleware/recover"
 
 	// . "groot/models"
+	// "groot/tools"
+
 	"groot/db"
 	"groot/route"
 )
@@ -37,10 +39,12 @@ import (
 // 		os.Exit(2)
 // 	}
 
+// 	hash := tools.EncryptPwd("123abc")
 // 	user := User{
 // 		Name: "董明",
 // 		Nickname: "weels",
 // 		Email: "dongmingming@renrenche.com",
+// 		Password: hash,
 // 		IsAdmin: true,
 // 		IsVerify: true,
 // 	}

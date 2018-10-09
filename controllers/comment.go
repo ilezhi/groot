@@ -42,7 +42,7 @@ func Comment(ctx *middleware.Context) {
 	}
 
 	comt.AuthorID = user.ID
-	err := comt.Save()
+	err := comt.Save(topic)
 	if err != nil {
 		ctx.Go(500, "评论失败")
 		return
@@ -61,10 +61,11 @@ func Reply(ctx *middleware.Context) {
 		ctx.Go(406, "回复内容不能为空")
 		return
 	}
-
+	
+	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 	reply.AuthorID = user.ID
-	err := reply.Save()
+	err := reply.Save(topic)
 	if err != nil {
 		ctx.Go(500, "回复失败")
 		return
