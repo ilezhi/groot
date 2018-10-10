@@ -40,8 +40,9 @@ func RegisterSite(app iris.Party) {
 	// 获取帖子评论回复
 	app.Get("/comments/{id:int}", middleware.Handler(controllers.Comments))
 
-	// // 登录
+	// 登录, 用户
 	app.Post("/signin", middleware.Handler(controllers.SignIn))
+	app.Get("/user/info", middleware.Handler(controllers.UserInfo))
 	
 	// // 用户相关
 	// app.Post("/user/create", middleware.Handler(controllers.CreateUser))

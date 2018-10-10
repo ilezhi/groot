@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"strings"
 	"reflect"
 )
 
@@ -11,7 +10,7 @@ func StructToMap(obj interface{}) map[string]interface{} {
 
 	data := make(map[string]interface{})
 	for i := 0; i < t.NumField(); i++ {
-		key := strings.ToLower(t.Field(i).Name)
+		key := t.Field(i).Tag.Get("json")
 		val := v.Field(i).Interface()
 		data[key] = val
 	}

@@ -44,3 +44,30 @@ func SignIn(ctx *middleware.Context) {
 	delete(data, "secretKey")
 	ctx.Go(data)
 }
+
+// 获取用户category, tag
+func UserInfo(ctx *middleware.Context) {
+	user := ctx.Session().Get("user").(*models.User)
+	favor := new(models.Favor)
+	tag := new(models.TopicTag)
+
+	favor.UserID = user.ID
+	// 获取
+	categories, err := favor.GroupByCategory()
+	if err != nil {
+		ctx.Go(500, "获取分类失败")
+		return
+	}
+
+	// 获取tags
+	tags, err := tag.GroupByTag(user.ID)
+	if err != nil {
+		ctx.Go(500, "获取标签分类失败")
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["categories"] = categories
+	data["tags"] = tags
+	ctx.Go(data)
+}
