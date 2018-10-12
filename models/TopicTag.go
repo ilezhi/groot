@@ -10,12 +10,11 @@ type TopicTag struct {
 	TagID				uint			`json:"tagID"`
 }
 
-
 func (tt *TopicTag) GroupByTag(uid uint) (tags []*Tag, err error) {
-	fields := "t.*, count(*) as count"
-	joinsTopic := "JOIN topics t ON t.id = tt.topic_id"
-	joinsUser	 := "JOIN users u ON t.author_id = u.id AND u.id = ?"
+	fields := "tag.*, count(*) as count"
+	joinsTopic := "JOIN topics t ON t.id = tt.topic_id AND t.author_id = ?"
+	joinsTag	 := "JOIN tags tag ON tt.tag_id = tag.id"
 
-	err = sql.DB.Table("topic_tags tt").Select(fields).Joins(joinsTopic).Joins(joinsUser, uid).Group("tt.tag_id").Order("t.created_at ASC").Scan(&tags).Error
+	err = sql.DB.Table("topic_tags tt").Select(fields).Joins(joinsTopic, uid).Joins(joinsTag).Group("tt.tag_id").Order("t.created_at ASC").Scan(&tags).Error
 	return
 }

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/go-playground/validator.v9"
@@ -39,19 +38,16 @@ type Topic struct {
 }
 
 func (topic *Topic) BeforeCreate() error {
-	fmt.Println("before create")
 	topic.UpdatedAt = time.Now().Unix()
 	return nil
 }
 
 func (topic *Topic) BeforeUpdate() error {
-	fmt.Println("before Update")
 	topic.UpdatedAt = time.Now().Unix()
 	return nil
 }
 
 func (topic *Topic) Validate() error {
-	fmt.Println("验证topic", topic)
 	return validator.New().Struct(topic)
 }
 
@@ -76,11 +72,11 @@ func (topic *Topic) UnSolved() (topics []*Topic, err error) {
 }
 
 func (topic *Topic) Solved() (topics []*Topic, err error) {
-	return topic.SearchByPage("u.id = ? AND t.answerID <> 0", topic.AuthorID)
+	return topic.SearchByPage("u.id = ? AND t.answer_id <> 0", topic.AuthorID)
 }
 
 func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
-	joins := "INNER comments c ON t.answer_id = c.id"
+	joins := "JOIN comments c ON t.answer_id = c.id"
 	err = PageTopics(topic.UpdatedAt).Joins(joins).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
 		return
@@ -167,9 +163,12 @@ func (topic *Topic) SearchByPage(where string, val interface{}) (topics []*Topic
 
 func (topic *Topic) GetTags() error {
 	var tags []*Tag
-	fields := "t.id, t.name"
+	fields := "t.id, t.name, t.created_at, t.author_id"
 	joins := "INNER JOIN topic_tags tt ON tt.tag_id = t.id AND tt.topic_id = ?"
+
 	err := sql.DB.Table("tags t").Select(fields).Joins(joins, topic.ID).Scan(&tags).Error
+	topic.Tags = tags
+
 	return err
 }
 
@@ -257,8 +256,8 @@ func PageTopics(lastID int64) *gorm.DB {
 		lastID = time.Now().Unix()
 	}
 
-	fields := `t.id, t.title, substring(t.content, 1, 140) as content,
-						t.view, t.top, t.awesome, t.updated_at, t.answer_id, u.avatar, u.nickname`
+	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
+						t.view, t.top, t.awesome, t.updated_at, t.created_at, t.answer_id, u.avatar, u.nickname`
 
 	joins := "INNER JOIN users u ON t.author_id = u.id"
 	where := "t.updated_at < ? AND t.issue = 1"
@@ -273,6 +272,5 @@ func SetTag(topics *[]*Topic) error {
 			return err
 		}
 	}
-
 	return nil
 }

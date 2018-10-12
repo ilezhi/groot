@@ -218,6 +218,8 @@ func PublishTopic(ctx *middleware.Context) {
 		return
 	}
 
+	topic.GetTags()
+
 	ctx.Go(topic)
 }
 
