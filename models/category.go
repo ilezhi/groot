@@ -19,3 +19,14 @@ func (c *Category) IsExist() bool {
 func (c *Category) Save() error {
 	return sql.DB.Create(c).Error
 }
+
+func (c *Category) GroupBy() ([]*Category, error) {
+	var categories []*Category
+	fields := "c.name, IFNULL(f.count, 0) as count, c.user_id, c.id, c.created_at"
+	joins := `LEFT JOIN (
+		select category_id, count(*) as count from favors group by category_id
+		) f ON c.id = f.category_id`
+
+	err := sql.DB.Table("categories c").Select(fields).Where("c.user_id = ?", c.UserID).Joins(joins).Scan(&categories).Error
+	return categories, err
+}

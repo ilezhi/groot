@@ -16,7 +16,7 @@ type Owner struct {
 var owner = &Owner{
 	createSess: sessions.New(sessions.Config{
 		Cookie: cookieNameForSessionID,
-		Expires: 10 * time.Minute,
+		Expires: 10 * time.Hour,
 		AllowReclaim: true,
 	}),
 }

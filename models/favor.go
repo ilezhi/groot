@@ -30,12 +30,3 @@ func (favor *Favor) Count() (count int) {
 	sql.DB.Model(favor).Where("topic_id = ?", favor.TopicID).Count(&count)
 	return
 }
-
-func (favor *Favor) GroupByCategory() ([]*Category, error) {
-	var categories []*Category
-	fields := `c.name, count(*) as count, c.user_id`
-	joins := "JOIN Categories c on c.id = f.category_id"
-
-	err := sql.DB.Table("favors f").Select(fields).Where("f.user_id = ?", favor.UserID).Joins(joins).Group("f.category_id").Scan(&categories).Error
-	return categories, err
-}

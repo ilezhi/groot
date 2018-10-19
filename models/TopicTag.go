@@ -10,7 +10,7 @@ type TopicTag struct {
 	TagID				uint			`json:"tagID"`
 }
 
-func (tt *TopicTag) GroupByTag(uid uint) (tags []*Tag, err error) {
+func (tt *TopicTag) GroupBy(uid uint) (tags []*Tag, err error) {
 	fields := "tag.*, count(*) as count"
 	joinsTopic := "JOIN topics t ON t.id = tt.topic_id AND t.author_id = ?"
 	joinsTag	 := "JOIN tags tag ON tt.tag_id = tag.id"

@@ -30,21 +30,14 @@ func RegisterSite(app iris.Party) {
 	app.Post("/topic/comment/{id:int}", middleware.Handler(controllers.Comment))
 	app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
 
-	// app.Get("/tags", middleware.Handler(controllers.Tags))
-	// app.Get("/tag/{id:int}", middleware.Handler(controllers.Tag))
+
 	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 	app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
-	// // 搜索相关
-	// app.Get("/search/tag/{name:string}", middleware.Handler(controllers.SearchTag))
 
 	// 获取帖子评论回复
 	app.Get("/comments/{id:int}", middleware.Handler(controllers.Comments))
 
 	// 登录, 用户
 	app.Post("/signin", middleware.Handler(controllers.SignIn))
-	app.Get("/user/info", middleware.Handler(controllers.UserInfo))
-	
-	// // 用户相关
-	// app.Post("/user/create", middleware.Handler(controllers.CreateUser))
-	// app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
+	app.Get("/user/info", middleware.Handler(controllers.UserInfo))	
 }
