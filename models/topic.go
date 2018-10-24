@@ -35,6 +35,7 @@ type Topic struct {
 	Avatar			string				`json:"avatar" gorm:"-"`
 	IsLike			bool					`json:"isLike" gorm:"-"`
 	IsFavor			bool					`json:"isFavor" gorm:"-"`
+	IsFull			bool					`json:"isFull" gorm:"-"`
 }
 
 func (topic *Topic) BeforeCreate() error {
@@ -89,7 +90,7 @@ func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
 func (topic *Topic) FindByID() error {
 	fields := `t.*, u.nickname, u.avatar`
 	joins := "INNER JOIN users u ON u.id = t.author_id"
-	err := sql.DB.Table("topic t").Select(fields).Where("t.id = ?", topic.ID).Joins(joins).Scan(topic).Error
+	err := sql.DB.Table("topics t").Select(fields).Where("t.id = ?", topic.ID).Joins(joins).Scan(topic).Error
 	if err != nil {
 		return err
 	}
@@ -229,10 +230,10 @@ func (topic *Topic) Update(tags *[]uint) error {
 }
 
 func (topic *Topic) GetComments() (comments []*Comment, err error) {
-	fields := `c.content, c.topic_id, c.updated_at, c.author_id
+	fields := `c.id, c.content, c.topic_id, c.updated_at, c.author_id, c.created_at,
 							u.nickname, u.avatar`
 	
-	joins := "INNER JOIN users u ON c.author_id = u.id"
+	joins := "JOIN users u ON c.author_id = u.id"
 	order := "c.created_at ASC"
 
 	err = sql.DB.Table("comments c").Select(fields).Joins(joins).Order(order).Scan(&comments).Error

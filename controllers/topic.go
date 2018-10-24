@@ -181,6 +181,7 @@ func Topic(ctx *middleware.Context) {
 		return
 	}
 
+	topic.IsFull = true
 	ctx.Go(topic)
 }
 
@@ -290,6 +291,7 @@ func FavorTopic(ctx *middleware.Context) {
 	favor.TopicID = uint(id)
 	favor.UserID = user.ID
 	isFavor := favor.IsExist()
+	fmt.Println("favor", isFavor)
 	if isFavor {
 		// 取消收藏
 		err = favor.Delete()
@@ -300,13 +302,14 @@ func FavorTopic(ctx *middleware.Context) {
 	} else {
 		// 收藏
 		err = favor.Insert()
+		fmt.Println("favor", favor)
 		if err != nil {
 			ctx.Go(500, "收藏失败")
 			return
 		}
 	}	
 		
-	ctx.Go(id)
+	ctx.Go(!isFavor)
 }
 
 /**

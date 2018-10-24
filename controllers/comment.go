@@ -42,6 +42,9 @@ func Comment(ctx *middleware.Context) {
 	}
 
 	comt.AuthorID = user.ID
+	comt.TopicID = topic.ID
+	comt.Nickname = user.Nickname
+	comt.Avatar = user.Avatar
 	err := comt.Save(topic)
 	if err != nil {
 		ctx.Go(500, "评论失败")
