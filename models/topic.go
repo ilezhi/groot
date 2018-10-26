@@ -35,6 +35,7 @@ type Topic struct {
 	Avatar			string				`json:"avatar" gorm:"-"`
 	IsLike			bool					`json:"isLike" gorm:"-"`
 	IsFavor			bool					`json:"isFavor" gorm:"-"`
+	CategoryID	uint					`json:"categoryID" gorm:"-"`
 	IsFull			bool					`json:"isFull" gorm:"-"`
 }
 
@@ -112,6 +113,7 @@ func (topic *Topic) GetCount() {
 	topic.FavorCount = favor.Count()
 	topic.IsLike = like.IsExist()
 	topic.IsFavor = favor.IsExist()
+	topic.CategoryID = favor.CategoryID
 	topic.GetComtCount()
 }
 
@@ -227,6 +229,10 @@ func (topic *Topic) Update(tags *[]uint) error {
 
 	tx.Commit()
 	return nil
+}
+
+func (topic *Topic) UpdateView() error {
+	return sql.DB.Model(topic).UpdateColumn("view", topic.View).Error
 }
 
 func (topic *Topic) GetComments() (comments []*Comment, err error) {

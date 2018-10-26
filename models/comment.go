@@ -50,16 +50,17 @@ func (comt *Comment) Delete() error {
 
 func (c *Comment) GetReplies() error {
 	var replies []*Reply
-	fields := `r.content, r.comment_id, r.author_id, r.receiver_id,
+	fields := `r.content, r.comment_id, r.author_id, r.receiver_id, r.updated_at, r.created_at,
 						 au.name, au.avatar, ru.name as receiver_name, ru.avatar as receiver_avatar`
 	joinsUser := "JOIN users au ON r.author_id = au.id"
 	joinsReceiver := "JOIN users ru ON r.receiver_id = ru.id"
 	order := "r.created_at ASC"
 
-	err := sql.DB.Table("replies r").Select(fields).Where("comment_id = ?", c.ID).Joins(joinsUser).Joins(joinsReceiver).Order(order).Scan(&replies).Error
+	err := sql.DB.Table("replies r").Select(fields).Where("r.comment_id = ?", c.ID).Joins(joinsUser).Joins(joinsReceiver).Order(order).Scan(&replies).Error
 	if err != nil {
 		return err
 	}
+
 	c.Replies = replies
 	return nil
 }

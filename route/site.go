@@ -26,8 +26,8 @@ func RegisterSite(app iris.Party) {
 	app.Post("/topic/create", middleware.Handler(controllers.PublishTopic))
 	app.Put("/topic/update/{id:int}", middleware.Handler(controllers.UpdateTopic))
 	app.Post("/topic/favor/{id:int}", middleware.Handler(controllers.FavorTopic))
-	app.Post("/topic/like/{id:int}", middleware.Handler(controllers.LikeTopic))
-	app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
+	app.Post("/like/{id:int}", middleware.Handler(controllers.Like))
+	// app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
 	
 	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 	app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
@@ -35,6 +35,7 @@ func RegisterSite(app iris.Party) {
 	// 获取帖子评论回复
 	app.Get("/comments/{id:int}", middleware.Handler(controllers.Comments))
 	app.Post("/comment/{id:int}", middleware.Handler(controllers.Comment))
+	app.Post("/comment/reply/{id:int}", middleware.Handler(controllers.Reply))
 
 	// 登录, 用户
 	app.Post("/signin", middleware.Handler(controllers.SignIn))

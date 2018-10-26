@@ -46,3 +46,13 @@ func (reply *Reply) Count() (count int) {
 	sql.DB.Model(reply).Where("topic_id = ?", reply.TopicID).Count(&count)
 	return
 }
+
+func (reply *Reply) ByID() error {
+	fields := `r.id, r.content, r.comment_id, r.topic_id, r.author_id, r.receiver_id,
+						 r.updated_at, au.nickname as name, au.avatar,
+						 ru.nickname as receiver_name, ru.avatar as receiver_avatar`
+	joinsAU := `JOIN users au ON r.author_id = au.id`
+	joinsRU	:= `JOIN users ru ON r.receiver_id = ru.id`
+
+	return sql.DB.Table("replies r").Select(fields).Where("r.id = ?", reply.ID).Joins(joinsAU).Joins(joinsRU).Scan(reply).Error
+}

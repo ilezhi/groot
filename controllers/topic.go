@@ -181,6 +181,9 @@ func Topic(ctx *middleware.Context) {
 		return
 	}
 
+	topic.View += 1
+	topic.UpdateView()
+
 	topic.IsFull = true
 	ctx.Go(topic)
 }
@@ -291,7 +294,6 @@ func FavorTopic(ctx *middleware.Context) {
 	favor.TopicID = uint(id)
 	favor.UserID = user.ID
 	isFavor := favor.IsExist()
-	fmt.Println("favor", isFavor)
 	if isFavor {
 		// 取消收藏
 		err = favor.Delete()
@@ -315,17 +317,18 @@ func FavorTopic(ctx *middleware.Context) {
 /**
  * 点赞
  */
-func LikeTopic(ctx *middleware.Context) {
+func Like(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	like := new(models.Like)
 	user := ctx.Session().Get("user").(*models.User)
 	like.TargetID = uint(id)
 	like.UserID = user.ID
-	like.Type = "topic"
-	
-	isExist := like.IsExist()
+
+	ctx.ReadJSON(like)
+
+	isLike := like.IsExist()
 	var err error
-	if isExist {
+	if isLike {
 		// 取消点赞
 		err = like.Delete()
 
@@ -341,5 +344,5 @@ func LikeTopic(ctx *middleware.Context) {
 		}
 	}
 
-	ctx.Go(id)
+	ctx.Go(!isLike)
 }

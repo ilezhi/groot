@@ -58,21 +58,32 @@ func Comment(ctx *middleware.Context) {
  * 回复
  */
 func Reply(ctx *middleware.Context) {
-	reply := new(models.Reply) 
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	topic.ID = uint(id)
+
+	exist := topic.IsExist()
+	if !exist {
+		ctx.Go(406, "帖子不存在")
+	}
+
+	reply := new(models.Reply)
 	ctx.ReadJSON(reply)
 	if reply.Content == "" {
 		ctx.Go(406, "回复内容不能为空")
 		return
 	}
-	
-	topic := new(models.Topic)
+
 	user := ctx.Session().Get("user").(*models.User)
 	reply.AuthorID = user.ID
+	reply.TopicID = topic.ID
 	err := reply.Save(topic)
 	if err != nil {
 		ctx.Go(500, "回复失败")
 		return
 	}
+
+	reply.ByID()
 
 	ctx.Go(reply)
 }
