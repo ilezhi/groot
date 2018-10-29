@@ -5,6 +5,7 @@ import (
 	"sync"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/sessions"
+	"github.com/gorilla/websocket"
 )
 
 var cookieNameForSessionID = "mycookiesessionnameid"
@@ -24,6 +25,7 @@ var owner = &Owner{
 type Context struct {
 	iris.Context
 	sess					*sessions.Session
+	WS						*websocket.Conn
 }
 
 var contextPool = sync.Pool{New: func() interface{} {

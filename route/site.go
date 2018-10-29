@@ -28,7 +28,7 @@ func RegisterSite(app iris.Party) {
 	app.Post("/topic/favor/{id:int}", middleware.Handler(controllers.FavorTopic))
 	app.Post("/like/{id:int}", middleware.Handler(controllers.Like))
 	// app.Post("/topic/reply/{id:int}", middleware.Handler(controllers.Reply))
-	
+
 	app.Post("/tag/create", middleware.Handler(controllers.CreateTag))
 	app.Post("/category/create", middleware.Handler(controllers.CreateCategory))
 

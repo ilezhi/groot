@@ -1,19 +1,21 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	// "os"
 	// "github.com/jinzhu/gorm"
 	// _ "github.com/go-sql-driver/mysql"
+
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
-
+	// "github.com/gorilla/websocket"
 	// . "groot/models"
 	// "groot/tools"
 
 	"groot/db"
 	"groot/route"
+	"groot/middleware"
 )
 
 // var DB *gorm.DB
@@ -57,6 +59,11 @@ import (
 // 	fmt.Println(user)
 // }
 
+// var upgrader = websocket.Upgrader{
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		return true
+// 	},
+// }
 
 func main() {
 	conn, _ := db.Connect()
@@ -65,19 +72,17 @@ func main() {
 
 	app.Use(recover.New())
 	app.Use(logger.New())
-	
-	app.Use(func(ctx iris.Context) {
-		ctx.Next()
 
-		code, _ := ctx.Values().GetInt("code")
-		message := ctx.Values().GetString("message")
-		data := ctx.Values().Get("data")
-		ctx.JSON(iris.Map{"code": code, "message": message, "data": data})
-	})
+	app.Use(middleware.Response)
+	// hub := newHub()
+	// go hub.run()
+	// app.Any("/ws", iris.FromStd(func (w http.ResponseWriter, r *http.Request) {
+	// 	serveWs(hub, w, r)
+	// }))
+
+	app.Get("/ws", middleware.Handler(middleware.WSConn))
 
 	Router.Register(app)
-
-	app.DoneGlobal(after)
 
 	app.Run(
 		iris.Addr("localhost:9000"),
@@ -85,8 +90,4 @@ func main() {
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
 	)
-}
-
-func after(ctx iris.Context) {
-	fmt.Println("after", ctx.Values().Get("data"))
 }
