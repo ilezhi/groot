@@ -5,7 +5,8 @@ import (
 	"sync"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/sessions"
-	"github.com/gorilla/websocket"
+
+	"groot/models"
 )
 
 var cookieNameForSessionID = "mycookiesessionnameid"
@@ -25,7 +26,7 @@ var owner = &Owner{
 type Context struct {
 	iris.Context
 	sess					*sessions.Session
-	WS						*websocket.Conn
+	client				*Client
 }
 
 var contextPool = sync.Pool{New: func() interface{} {
@@ -35,6 +36,8 @@ var contextPool = sync.Pool{New: func() interface{} {
 func acquire(original iris.Context) *Context {
 	ctx := contextPool.Get().(*Context)
 	ctx.Context = original
+	ctx.sess = nil
+	ctx.client = nil
 	return ctx
 }
 
@@ -54,8 +57,16 @@ func (ctx *Context) Session() *sessions.Session {
 	if ctx.sess == nil {
 		ctx.sess = owner.createSess.Start(ctx.Context)
 	}
-
 	return ctx.sess
+}
+
+func (ctx *Context) Client() *Client {
+	if ctx.client == nil {
+		user := ctx.sess.Get("user").(*models.User)
+		ctx.client = hub.clients[user.ID]
+	}
+
+	return ctx.client
 }
 
 func (ctx *Context) Go(a ...interface{}) {

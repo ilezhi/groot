@@ -1,30 +1,30 @@
 package middleware
 
 import (
-	"net/http"
-	"bytes"
+	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
+// 保存每个客户端连接信息
 type Client struct {
+	id uint
+
 	hub *Hub
 
-	conn *websocket.Conn
+	send chan interface{}
 
-	send chan []byte
+	conn *websocket.Conn
 }
 
-var space = []byte{' '}
+type Params interface{}
+
+type Message struct {
+	to []uint
+	data interface{}
+}
 
 func (c *Client) readPump() {
 	defer func() {
@@ -33,21 +33,17 @@ func (c *Client) readPump() {
 	}()
 
 	for {
-		_, message, err := c.conn.ReadMessage()
+		var m Params
+		err := c.conn.ReadJSON(&m)
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error %v", err)
-			}
-
+			fmt.Println("readjson error", err)
 			break
 		}
 
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		fmt.Println("readjson success", m)
+		c.Others(m)
 	}
 }
-
-var newline = []byte{'\n'}
 
 func (c *Client) writePump() {
 	defer func() {
@@ -58,70 +54,113 @@ func (c *Client) writePump() {
 		select {
 		case message, ok := <- c.send:
 			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-
-			w.Write(message)
-
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
-
-			if err := w.Close(); err != nil {
-				return
-			}
+			c.conn.WriteJSON(message)
 		}
 	}
 }
 
-type Hub struct {
-	clients map[*Client]bool
+func (c *Client) To(id uint, message interface{}) {
+	msg := &Message{
+		data: message,
+		to: []uint{id},
+	}
+	c.hub.broadcast <- msg
+}
 
-	broadcast chan []byte
+func (c *Client) All(message interface{}) {
+	ids := make([]uint, 0, len(c.hub.clients) - 1)
+	for id := range c.hub.clients {
+		ids = append(ids, id)
+	}
+	msg := &Message{
+		data: message,
+		to: ids,
+	}
+
+	c.hub.broadcast <- msg
+}
+
+func (c *Client) Others(message interface{}) {
+	ids := make([]uint, 0, len(c.hub.clients) - 1)
+	for id := range c.hub.clients {
+		if id == c.id {
+			continue
+		}
+		ids = append(ids, id)
+	}
+	msg := &Message{
+		data: message,
+		to: ids,
+	}
+
+	c.hub.broadcast <- msg
+}
+
+// 1. 所有人
+// 2. 除了自己的所有人
+// 3. 指定要发送的人
+// TODO:
+// 4. 分组发送
+type Hub struct {
+	clients map[uint]*Client
+
+	broadcast chan *Message
 
 	register chan *Client
 
 	unregister chan *Client
 }
 
-func newHub() *Hub {
-	return &Hub{
-		broadcast: 	make(chan []byte),
-		register:		make(chan *Client),
-		unregister: make(chan *Client),
-		clients:		make(map[*Client]bool),
-	}
-}
-
 func (h *Hub) run() {
 	for {
 		select {
 		case client := <- h.register:
-			h.clients[client] = true
+			h.clients[client.id] = client
+
 		case client := <- h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
+			if _, ok := h.clients[client.id]; ok {
+				delete(h.clients, client.id)
 				close(client.send)
 			}
+
 		case message := <- h.broadcast:
-			for client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-				}
-			}
+			h.send(message)
 		}
 	}
+}
+
+func (h *Hub) send(message *Message) {
+	ids := message.to
+
+	for _, id := range ids {
+		client := h.clients[id]
+		select {
+		case client.send <- message.data:
+		default:
+			close(client.send)
+			delete(h.clients, id)
+		}
+	}
+}
+
+func newHub() *Hub {
+	return &Hub{
+		clients: 		make(map[uint]*Client),
+		register: 	make(chan *Client),
+		unregister: make(chan *Client),
+		broadcast: 		make(chan *Message),
+	}
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 var hub *Hub
@@ -132,18 +171,16 @@ func init() {
 }
 
 func WSConn(ctx *Context) {
+	id, _ := ctx.Params().GetInt("id")
 	conn, err := upgrader.Upgrade(ctx.ResponseWriter(), ctx.Request(), nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	ctx.WS = conn
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{id: uint(id) , hub: hub, conn: conn, send: make(chan interface{})}
 	client.hub.register <- client
 
-	
 	go client.readPump()
 	go client.writePump()
-	ctx.Next()
 }

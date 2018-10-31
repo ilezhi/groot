@@ -45,6 +45,15 @@ func SignIn(ctx *middleware.Context) {
 	ctx.Go(data)
 }
 
+func LoginUser(ctx *middleware.Context) {
+	user := ctx.Session().Get("user").(*models.User)
+	data := tools.StructToMap(*user)
+	delete(data, "password")
+	delete(data, "token")
+	delete(data, "secretKey")
+	ctx.Go(data)
+}
+
 // 获取用户category, tag
 func UserInfo(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)

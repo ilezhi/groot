@@ -39,5 +39,6 @@ func RegisterSite(app iris.Party) {
 
 	// 登录, 用户
 	app.Post("/signin", middleware.Handler(controllers.SignIn))
-	app.Get("/user/info", middleware.Handler(controllers.UserInfo))	
+	app.Get("/user/info", middleware.Handler(controllers.UserInfo))
+	app.Get("/user", middleware.Handler(controllers.LoginUser))
 }

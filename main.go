@@ -79,8 +79,7 @@ func main() {
 	// app.Any("/ws", iris.FromStd(func (w http.ResponseWriter, r *http.Request) {
 	// 	serveWs(hub, w, r)
 	// }))
-
-	app.Get("/ws", middleware.Handler(middleware.WSConn))
+	app.Get("/ws/{id:int}", middleware.Handler(middleware.WSConn))
 
 	Router.Register(app)
 

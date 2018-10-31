@@ -224,6 +224,7 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic.GetTags()
 
+	ctx.Client().Others(topic)
 	ctx.Go(topic)
 }
 
