@@ -242,7 +242,7 @@ func (topic *Topic) GetComments() (comments []*Comment, err error) {
 	joins := "JOIN users u ON c.author_id = u.id"
 	order := "c.created_at ASC"
 
-	err = sql.DB.Table("comments c").Select(fields).Joins(joins).Order(order).Scan(&comments).Error
+	err = sql.DB.Table("comments c").Select(fields).Joins(joins).Where("c.topic_id = ?", topic.ID).Order(order).Scan(&comments).Error
 	if err != nil {
 		return
 	}
@@ -264,7 +264,7 @@ func PageTopics(lastID int64) *gorm.DB {
 	}
 
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
-						t.view, t.top, t.awesome, t.updated_at, t.created_at, t.answer_id, u.avatar, u.nickname`
+						t.view, t.top, t.shared, t.awesome, t.updated_at, t.created_at, t.answer_id, u.avatar, u.nickname`
 
 	joins := "INNER JOIN users u ON t.author_id = u.id"
 	where := "t.updated_at < ? AND t.issue = 1"

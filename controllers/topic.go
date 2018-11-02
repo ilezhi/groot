@@ -8,7 +8,7 @@ import (
 	"groot/middleware"
 )
 
-type TopicParams struct {
+type TopicForm struct {
 	Title 	string		`json:"title"`
 	Content string		`json:"content"`
 	Tags 		[]uint		`json:"tags"`
@@ -193,8 +193,8 @@ func Topic(ctx *middleware.Context) {
  * content, title, tags, shared
  */
 func PublishTopic(ctx *middleware.Context) {
-	var params TopicParams
-	err := ctx.ReadJSON(&params)
+	var form TopicForm
+	err := ctx.ReadJSON(&form)
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
@@ -202,9 +202,9 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
-	topic.Title = params.Title
-	topic.Content = params.Content
-	topic.Shared = params.Shared
+	topic.Title = form.Title
+	topic.Content = form.Content
+	topic.Shared = form.Shared
 	topic.AuthorID= user.ID
 	topic.Issue = true
 
@@ -216,7 +216,7 @@ func PublishTopic(ctx *middleware.Context) {
 	}
 
 	// 添加话题和tag
-	err = topic.Save(&params.Tags)
+	err = topic.Save(&form.Tags)
 	if err != nil {
 		ctx.Go(500, "新增失败")
 		return
@@ -224,7 +224,7 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic.GetTags()
 
-	ctx.Client().Others(topic)
+	// ctx.Client().Others(topic)
 	ctx.Go(topic)
 }
 
@@ -232,19 +232,19 @@ func PublishTopic(ctx *middleware.Context) {
  * 更新
  */
 func UpdateTopic(ctx *middleware.Context) {
-	var params TopicParams
-	err := ctx.ReadJSON(&params)
+	var form TopicForm
+	err := ctx.ReadJSON(&form)
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
 	}
 
-	if params.Content == "" {
+	if form.Content == "" {
 		ctx.Go(406, "帖子内容不能为空")
 		return
 	}
 
-	if len(params.Tags) < 1 {
+	if len(form.Tags) < 1 {
 		ctx.Go(406, "帖子至少需要添加一个标签")
 		return
 	}
@@ -259,9 +259,9 @@ func UpdateTopic(ctx *middleware.Context) {
 		return
 	}
 
-	topic.Content = params.Content
-	topic.Shared = params.Shared
-	topic.Update(&params.Tags)
+	topic.Content = form.Content
+	topic.Shared = form.Shared
+	topic.Update(&form.Tags)
 
 	ctx.Go(topic)
 }
