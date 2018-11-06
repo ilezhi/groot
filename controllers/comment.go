@@ -51,6 +51,10 @@ func Comment(ctx *middleware.Context) {
 		return
 	}
 
+	rt := make(map[string]interface{})
+	rt["type"] = "comment"
+	rt["data"] = comt
+	go ctx.Client().Others(rt)
 	ctx.Go(comt)
 }
 
@@ -85,5 +89,9 @@ func Reply(ctx *middleware.Context) {
 
 	reply.ByID()
 
+	rt := make(map[string]interface{})
+	rt["type"] = "reply"
+	rt["data"] = reply
+	go ctx.Client().Others(rt)
 	ctx.Go(reply)
 }

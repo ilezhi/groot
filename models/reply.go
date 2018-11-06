@@ -12,16 +12,18 @@ type Reply struct {
 	AuthorID				uint				`json:"authorID"`
 	TopicID					uint				`json:"topicID"`
 	ReceiverID			uint				`json:"receiverID" validate:"required,numeric"`
-	UpdatedAt				int64				`json:"updatedAt"`
-	Name						string			`json:"name" gorm:"-"`
+	Nickname				string			`json:"nickname" gorm:"-"`
 	Avatar					string			`json:"avatar" gorm:"-"`
 	ReceiverName		string			`json:"receiverName" gorm:"-"`
 	ReceiverAvatar	string			`json:"receiverAvatar" gorm:"-"`
+	Title						string			`json:"title" gorm:"-"`
+	Shared					bool  			`json:"shared" gorm:"-"`
+	RID             uint        `json:"rid" gorm:"-"`
 }
 
+// TODO: topic
 func (reply *Reply) Save(topic *Topic) error {
 	now := time.Now().Unix()
-	reply.UpdatedAt = now
 
 	tx := sql.DB.Begin()
 
@@ -31,8 +33,8 @@ func (reply *Reply) Save(topic *Topic) error {
 		return err
 	}
 
-	topic.UpdatedAt = now
-	err = tx.Model(topic).Update("updated_at").Error
+	topic.ActiveAt = now
+	err = tx.Model(topic).Update("active_at").Error
 	if err != nil {
 		tx.Rollback()
 		return err

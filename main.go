@@ -28,35 +28,35 @@ import (
 // 		os.Exit(2)
 // 	}
 
-// 	if err != nil {
-// 		fmt.Println("验证失败", err)
-// 	} else {
-// 		fmt.Println("验证成功")
-// 	}
-// 	err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
-// 		&ProjectMember{}, &Like{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
+	// if err != nil {
+	// 	fmt.Println("验证失败", err)
+	// } else {
+	// 	fmt.Println("验证成功")
+	// }
+	// err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
+	// 	&ProjectMember{}, &Like{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
 
-// 	if err != nil {
-// 		fmt.Println("创建表格失败", err)
-// 		os.Exit(2)
-// 	}
+	// if err != nil {
+	// 	fmt.Println("创建表格失败", err)
+	// 	os.Exit(2)
+	// }
 
-// 	hash := tools.EncryptPwd("123abc")
-// 	user := User{
-// 		Name: "董明",
-// 		Nickname: "weels",
-// 		Email: "dongmingming@renrenche.com",
-// 		Password: hash,
-// 		IsAdmin: true,
-// 		IsVerify: true,
-// 	}
+	// hash := tools.EncryptPwd("123abc")
+	// user := User{
+	// 	Name: "admin",
+	// 	Nickname: "admin",
+	// 	Email: "admin@123.com",
+	// 	Password: hash,
+	// 	IsAdmin: true,
+	// 	IsVerify: true,
+	// }
 
-// 	err = DB.Create(&user).Error
+	// err = DB.Create(&user).Error
 
-// 	if err != nil {
-// 		fmt.Println("新增用户错误", err)
-// 	}
-// 	fmt.Println(user)
+	// if err != nil {
+	// 	fmt.Println("新增用户错误", err)
+	// }
+	// fmt.Println(user)
 // }
 
 // var upgrader = websocket.Upgrader{
@@ -73,18 +73,17 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 
+	app.OnErrorCode(iris.StatusInternalServerError, func(ctx iris.Context) {
+		ctx.JSON(iris.Map{"code": ctx.StatusCode, "message": ctx.Values().GetString("message")})
+	})
+
 	app.Use(middleware.Response)
-	// hub := newHub()
-	// go hub.run()
-	// app.Any("/ws", iris.FromStd(func (w http.ResponseWriter, r *http.Request) {
-	// 	serveWs(hub, w, r)
-	// }))
 	app.Get("/ws/{id:int}", middleware.Handler(middleware.WSConn))
 
 	Router.Register(app)
 
 	app.Run(
-		iris.Addr("localhost:9000"),
+		iris.Addr("172.18.2.231:9000"),
 		iris.WithoutVersionChecker,
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,

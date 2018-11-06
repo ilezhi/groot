@@ -24,14 +24,14 @@ type Topic struct {
 	Top					bool					`json:"top" gorm:"default:'0'"`				// 置顶
 	Awesome			bool					`json:"awesome" gorm:"default:'0'"`		// 精华
 	Issue				bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
-	UpdatedAt		int64					`json:"updatedAt"`										// 时间戳, 用于排序, 采用lastID排序
+	ActiveAt		int64					`json:"activeAt"`
 	AnswerID		uint					`json:"answerID"`
 	Answer			*Comment			`json:"answer" gorm:"-"`
 	Tags				[]*Tag				`json:"tags,-" gorm:"-"`
 	LikeCount		int						`json:"likeCount" gorm:"-"`
 	ComtCount		int						`json:"comtCount" gorm:"-"`
 	FavorCount	int						`json:"favorCount" gorm:"-"`
-	Nickname		string				`json:"nickName" gorm:"-"`
+	Nickname		string				`json:"nickname" gorm:"-"`
 	Avatar			string				`json:"avatar" gorm:"-"`
 	IsLike			bool					`json:"isLike" gorm:"-"`
 	IsFavor			bool					`json:"isFavor" gorm:"-"`
@@ -40,12 +40,12 @@ type Topic struct {
 }
 
 func (topic *Topic) BeforeCreate() error {
-	topic.UpdatedAt = time.Now().Unix()
+	topic.ActiveAt = time.Now().Unix()
 	return nil
 }
 
 func (topic *Topic) BeforeUpdate() error {
-	topic.UpdatedAt = time.Now().Unix()
+	topic.ActiveAt = time.Now().Unix()
 	return nil
 }
 
@@ -79,7 +79,7 @@ func (topic *Topic) Solved() (topics []*Topic, err error) {
 
 func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
 	joins := "JOIN comments c ON t.answer_id = c.id"
-	err = PageTopics(topic.UpdatedAt).Joins(joins).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Joins(joins).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (topic *Topic) GetComtCount() {
  */
 func (topic *Topic) GetByCategory(id uint) (topics []*Topic, err error) {
 	joins := "JOIN favor f ON f.topic_id = t.id AND f.id = ?"
-	err = PageTopics(topic.UpdatedAt).Joins(joins, id).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Joins(joins, id).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -146,12 +146,12 @@ func (topic *Topic) SharedList() (topics []*Topic, err error) {
 
 func (topic *Topic) GetByTag(id uint) (topics []*Topic, err error) {
 	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.id = ?"
-	err = PageTopics(topic.UpdatedAt).Joins(joins, topic.ID).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Joins(joins, topic.ID).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
 	return
 }
 
 func (topic *Topic) SearchByPage(where string, val interface{}) (topics []*Topic, err error) {
-	err = PageTopics(topic.UpdatedAt).Where(where, val).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Where(where, val).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -201,7 +201,7 @@ func (topic *Topic) Save(tags *[]uint) error {
 
 func (topic *Topic) Update(tags *[]uint) error {
 	tx := sql.DB.Begin()
-	err := tx.Model(topic).Update("content", "shared", "updated_at").Error
+	err := tx.Model(topic).Update("content", "shared", "active_at").Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -238,7 +238,7 @@ func (topic *Topic) UpdateView() error {
 func (topic *Topic) GetComments() (comments []*Comment, err error) {
 	fields := `c.id, c.content, c.topic_id, c.updated_at, c.author_id, c.created_at,
 							u.nickname, u.avatar`
-	
+
 	joins := "JOIN users u ON c.author_id = u.id"
 	order := "c.created_at ASC"
 
@@ -264,11 +264,11 @@ func PageTopics(lastID int64) *gorm.DB {
 	}
 
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
-						t.view, t.top, t.shared, t.awesome, t.updated_at, t.created_at, t.answer_id, u.avatar, u.nickname`
+						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, u.avatar, u.nickname`
 
 	joins := "INNER JOIN users u ON t.author_id = u.id"
-	where := "t.updated_at < ? AND t.issue = 1"
-	order := "t.updated_at DESC"
+	where := "t.active_at < ? AND t.issue = 1"
+	order := "t.active_at DESC"
 	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Joins(joins).Order(order)
 }
 

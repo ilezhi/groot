@@ -19,7 +19,7 @@ func AllTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
 	topic := new(models.Topic)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 
 	topics, err := topic.All()
 	if err != nil {
@@ -34,7 +34,7 @@ func AwesomeTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
 	topic := new(models.Topic)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 
 	topics, err := topic.Awesomes()
 	if err != nil {
@@ -50,7 +50,7 @@ func DeptTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.Department(user.DeptID)
@@ -67,7 +67,7 @@ func MyTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.UnSolved()
@@ -84,7 +84,7 @@ func SolvedTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.Solved()
@@ -101,7 +101,7 @@ func AnswerTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.CommentAsAnswer()
@@ -118,7 +118,7 @@ func FavorTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
 	topic := new(models.Topic)
 	
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 
 	topics, err := topic.GetByCategory(uint(id))
 	if err != nil {
@@ -134,7 +134,7 @@ func SharedTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.SharedList()
@@ -152,7 +152,7 @@ func TagTopics(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
-	topic.UpdatedAt = lastID
+	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
 	topics, err := topic.GetByTag(uint(id))
@@ -224,7 +224,10 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic.GetTags()
 
-	// ctx.Client().Others(topic)
+	rt := make(map[string]interface{})
+	rt["type"] = "topic"
+	rt["data"] = topic
+	go ctx.Client().Others(rt)
 	ctx.Go(topic)
 }
 

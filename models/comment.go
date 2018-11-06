@@ -11,14 +11,16 @@ type Comment struct {
 	Replies		[]*Reply		`json:"replies" gorm:"-"`
 	AuthorID	uint				`json:"authorID"`
 	TopicID		uint				`json:"topicID" validate:"required"`
-	UpdatedAt int64				`json:"updatedAt"`
-	Nickname	string			`json:"nickName" gorm:"-"`
+	Nickname	string			`json:"nickname" gorm:"-"`
 	Avatar		string			`json:"avatar" gorm:"-"`
+	Title			string			`json:"title" gorm:"-"`
+	Shared    bool  			`json:"shared" gorm:"-"`
+	RID       uint        `json:"rid" gorm:"-"`
 }
 
+// TODO: topic
 func (comt *Comment) Save(topic *Topic) error {
 	now := time.Now().Unix()
-	comt.UpdatedAt = now
 
 	tx := sql.DB.Begin()
 
@@ -28,8 +30,8 @@ func (comt *Comment) Save(topic *Topic) error {
 		return err	
 	}
 
-	topic.UpdatedAt = now
-	err = tx.Model(topic).Update("updated_at").Error
+	topic.ActiveAt = now
+	err = tx.Model(topic).Update("active_at").Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -40,7 +42,6 @@ func (comt *Comment) Save(topic *Topic) error {
 }
 
 func (comt *Comment) Update() error {
-	comt.UpdatedAt = time.Now().Unix()
 	return sql.DB.Model(comt).Update("content", "updated_at").Error
 }
 

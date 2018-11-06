@@ -10,7 +10,7 @@ import (
 type User struct {
 	ID				uint			`json:"id" gorm:"primary_key;auto_increment"`
 	Name			string		`json:"name" gorm:"size:15;not null" validate:"min=2,max=5,required"`
-	Nickname	string		`json:"nickName" gorm:"size:50;default:''"`
+	Nickname	string		`json:"nickname" gorm:"size:50;default:''"`
 	Email			string		`json:"email" gorm:"size:50;unique_index" validate:"required,email"`
 	Password	string		`json:"password"`
 	Gender		int				`json:"gender" gorm:"type:tinyint"`
@@ -23,6 +23,7 @@ type User struct {
 	IsVerify	bool			`json:"isVerify" gorm:"default:'0'"`		// 默认账号需要邮箱激活验证
 	IsLock		bool			`json:"isLock" gorm:"default:'0'"`		// 0: 不锁, 1:锁定
 	CreatedAt	time.Time	`json:"createdAt"`
+	UpdatedAt	time.Time	`json:"updatedAt"`
 	IsAdmin		bool			`json:"isAdmin" gorm:"-"`
 }
 
