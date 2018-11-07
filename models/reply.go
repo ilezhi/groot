@@ -33,8 +33,7 @@ func (reply *Reply) Save(topic *Topic) error {
 		return err
 	}
 
-	topic.ActiveAt = now
-	err = tx.Model(topic).Update("active_at").Error
+	err = tx.Model(topic).Update("active_at", now).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -51,7 +50,7 @@ func (reply *Reply) Count() (count int) {
 
 func (reply *Reply) ByID() error {
 	fields := `r.id, r.content, r.comment_id, r.topic_id, r.author_id, r.receiver_id,
-						 r.updated_at, au.nickname as name, au.avatar,
+						 r.updated_at, au.nickname, au.avatar,
 						 ru.nickname as receiver_name, ru.avatar as receiver_avatar`
 	joinsAU := `JOIN users au ON r.author_id = au.id`
 	joinsRU	:= `JOIN users ru ON r.receiver_id = ru.id`

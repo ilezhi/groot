@@ -9,7 +9,6 @@ import (
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
-	// "github.com/gorilla/websocket"
 	// . "groot/models"
 	// "groot/tools"
 
@@ -41,28 +40,22 @@ import (
 	// 	os.Exit(2)
 	// }
 
-	// hash := tools.EncryptPwd("123abc")
-	// user := User{
-	// 	Name: "admin",
-	// 	Nickname: "admin",
-	// 	Email: "admin@123.com",
-	// 	Password: hash,
-	// 	IsAdmin: true,
-	// 	IsVerify: true,
-	// }
+// 	hash := tools.EncryptPwd("123abc")
+// 	user := User{
+// 		Name: "skr",
+// 		Nickname: "skr",
+// 		Email: "skr@123.com",
+// 		Password: hash,
+// 		IsAdmin: false,
+// 		IsVerify: true,
+// 	}
 
-	// err = DB.Create(&user).Error
+// 	err = DB.Create(&user).Error
 
-	// if err != nil {
-	// 	fmt.Println("新增用户错误", err)
-	// }
-	// fmt.Println(user)
-// }
-
-// var upgrader = websocket.Upgrader{
-// 	CheckOrigin: func(r *http.Request) bool {
-// 		return true
-// 	},
+// 	if err != nil {
+// 		fmt.Println("新增用户错误", err)
+// 	}
+// 	fmt.Println(user)
 // }
 
 func main() {

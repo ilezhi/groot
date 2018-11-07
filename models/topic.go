@@ -16,27 +16,29 @@ type TopicParams struct {
 
 type Topic struct {
 	BaseModel
-	Title				string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=10,max=30,required"`
-	Content			string				`json:"content" gorm:"type:text"`
-	Shared			bool					`json:"shared" gorm:"default:'0'"`
-	AuthorID		uint					`json:"authorID" gorm:"index" validate:"required,numeric"`
-	View				uint					`json:"view" gorm:"default:'0'"`			// 浏览量
-	Top					bool					`json:"top" gorm:"default:'0'"`				// 置顶
-	Awesome			bool					`json:"awesome" gorm:"default:'0'"`		// 精华
-	Issue				bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
-	ActiveAt		int64					`json:"activeAt"`
-	AnswerID		uint					`json:"answerID"`
-	Answer			*Comment			`json:"answer" gorm:"-"`
-	Tags				[]*Tag				`json:"tags,-" gorm:"-"`
-	LikeCount		int						`json:"likeCount" gorm:"-"`
-	ComtCount		int						`json:"comtCount" gorm:"-"`
-	FavorCount	int						`json:"favorCount" gorm:"-"`
-	Nickname		string				`json:"nickname" gorm:"-"`
-	Avatar			string				`json:"avatar" gorm:"-"`
-	IsLike			bool					`json:"isLike" gorm:"-"`
-	IsFavor			bool					`json:"isFavor" gorm:"-"`
-	CategoryID	uint					`json:"categoryID" gorm:"-"`
-	IsFull			bool					`json:"isFull" gorm:"-"`
+	Title					string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=10,max=30,required"`
+	Content				string				`json:"content" gorm:"type:text"`
+	Shared				bool					`json:"shared" gorm:"default:'0'"`
+	AuthorID			uint					`json:"authorID" gorm:"index" validate:"required,numeric"`
+	View					uint					`json:"view" gorm:"default:'0'"`			// 浏览量
+	Top						bool					`json:"top" gorm:"default:'0'"`				// 置顶
+	Awesome				bool					`json:"awesome" gorm:"default:'0'"`		// 精华
+	Issue					bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
+	ActiveAt			int64					`json:"activeAt"`
+	AnswerID			uint					`json:"answerID"`
+	Answer				*Comment			`json:"answer" gorm:"-"`
+	Tags					[]*Tag				`json:"tags,-" gorm:"-"`
+	LikeCount			int						`json:"likeCount" gorm:"-"`
+	ComtCount			int						`json:"comtCount" gorm:"-"`
+	FavorCount		int						`json:"favorCount" gorm:"-"`
+	Nickname			string				`json:"nickname" gorm:"-"`
+	Avatar				string				`json:"avatar" gorm:"-"`
+	IsLike				bool					`json:"isLike" gorm:"-"`
+	IsFavor				bool					`json:"isFavor" gorm:"-"`
+	CategoryID		uint					`json:"categoryID" gorm:"-"`
+	IsFull				bool					`json:"isFull" gorm:"-"`
+	LastNickname 	string				`json:"lastNickname" gorm:"-"`
+	LastAvatar  	string				`json:"lastAvatar" gorm:"-"`
 }
 
 func (topic *Topic) BeforeCreate() error {
@@ -263,13 +265,22 @@ func PageTopics(lastID int64) *gorm.DB {
 		lastID = time.Now().Unix()
 	}
 
-	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
-						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, u.avatar, u.nickname`
-
-	joins := "INNER JOIN users u ON t.author_id = u.id"
+	fields := `t.id, t.title, substring(t.content, 1, 140) as content, if(char_length(t.content) < 140, true, false) as is_full, t.author_id,
+						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
+						lu.nickname as last_nickname, lu.avatar as last_avatar`
+	
+	joins := "JOIN users au ON t.author_id = au.id"
+	lastPost := `LEFT JOIN (
+		SELECT d.* from (
+			SELECT author_id, topic_id, updated_at from comments
+			UNION
+			SELECT author_id, topic_id, updated_at from replies
+		) d GROUP BY d.topic_id
+	) lp on lp.topic_id = t.id`
+	lastJoins := "left join users lu on lu.id = lp.author_id"
 	where := "t.active_at < ? AND t.issue = 1"
 	order := "t.active_at DESC"
-	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Joins(joins).Order(order)
+	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Joins(joins).Joins(lastPost).Joins(lastJoins).Order(order)
 }
 
 func SetTag(topics *[]*Topic) error {

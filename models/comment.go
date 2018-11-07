@@ -30,8 +30,7 @@ func (comt *Comment) Save(topic *Topic) error {
 		return err	
 	}
 
-	topic.ActiveAt = now
-	err = tx.Model(topic).Update("active_at").Error
+	err = tx.Model(topic).Update("active_at", now).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -51,8 +50,8 @@ func (comt *Comment) Delete() error {
 
 func (c *Comment) GetReplies() error {
 	var replies []*Reply
-	fields := `r.id, r.content, r.comment_id, r.author_id, r.receiver_id, r.updated_at, r.created_at,
-						 au.name, au.avatar, ru.name as receiver_name, ru.avatar as receiver_avatar`
+	fields := `r.id, r.content, r.comment_id, r.topic_id, r.author_id, r.receiver_id, r.updated_at, r.created_at,
+						 au.nickname, au.avatar, ru.nickname as receiver_name, ru.avatar as receiver_avatar`
 	joinsUser := "JOIN users au ON r.author_id = au.id"
 	joinsReceiver := "JOIN users ru ON r.receiver_id = ru.id"
 	order := "r.created_at ASC"
