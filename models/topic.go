@@ -68,20 +68,20 @@ func (topic *Topic) Awesomes() ([]*Topic, error) {
 }
 
 func (topic *Topic) Department(deptID uint) (topics []*Topic, err error) {
-	return topic.SearchByPage("u.dept_id = ?", deptID)
+	return topic.SearchByPage("au.dept_id = ?", deptID)
 }
 
 func (topic *Topic) UnSolved() (topics []*Topic, err error) {
-	return topic.SearchByPage("u.id = ? AND t.answer_id = 0", topic.AuthorID)
+	return topic.SearchByPage("au.id = ? AND t.answer_id = 0", topic.AuthorID)
 }
 
 func (topic *Topic) Solved() (topics []*Topic, err error) {
-	return topic.SearchByPage("u.id = ? AND t.answer_id <> 0", topic.AuthorID)
+	return topic.SearchByPage("au.id = ? AND t.answer_id <> 0", topic.AuthorID)
 }
 
 func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
 	joins := "JOIN comments c ON t.answer_id = c.id"
-	err = PageTopics(topic.ActiveAt).Joins(joins).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Joins(joins).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -148,7 +148,7 @@ func (topic *Topic) SharedList() (topics []*Topic, err error) {
 
 func (topic *Topic) GetByTag(id uint) (topics []*Topic, err error) {
 	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.id = ?"
-	err = PageTopics(topic.ActiveAt).Joins(joins, topic.ID).Where("u.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt).Joins(joins, topic.ID).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
 	return
 }
 
