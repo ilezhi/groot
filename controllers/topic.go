@@ -235,6 +235,8 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic.GetTags()
 
+	topic.Nickname = user.Nickname
+	topic.Avatar = user.Avatar
 	rt := make(map[string]interface{})
 	rt["type"] = "topic"
 	rt["data"] = topic
