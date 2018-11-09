@@ -9,10 +9,18 @@ import (
 )
 
 type TopicForm struct {
-	Title 	string		`json:"title"`
-	Content string		`json:"content"`
-	Tags 		[]uint		`json:"tags"`
-	Shared 	bool			`json:"shared"`
+	ID			 		uint      `json:"id,omitempty"`
+	Title 	 		string		`json:"title"`
+	Content  		string		`json:"content,omitempty"`
+	Tags 		 		[]uint		`json:"tags,omitempty"`
+	Shared 	 		bool			`json:"shared"`
+	Type     		string    `json:"type,omitempty"`
+	AuthorID 		uint			`json:"authorID,omitempty"`
+	IsLike   		bool      `json:"isLike"`
+	IsFavor  		bool      `json:"isFavor"`
+	CategoryID 	uint			`json:"categoryID,omitempty"`
+	Nickname    string    `json:"nickname,omitempty"`
+	Avatar			string		`json:"avatar,omitempty"`
 }
 
 func AllTopics(ctx *middleware.Context) {
@@ -183,8 +191,11 @@ func Topic(ctx *middleware.Context) {
 
 	topic.View += 1
 	topic.UpdateView()
-
+	
+	user := ctx.Session().Get("user").(*models.User)
+	topic.GetCount(user.ID)
 	topic.IsFull = true
+
 	ctx.Go(topic)
 }
 
@@ -277,18 +288,20 @@ func TrashTopic(ctx *middleware.Context) {
  * 收藏
  */
 func FavorTopic(ctx *middleware.Context) {
+	var form TopicForm
 	id, _ := ctx.Params().GetInt("id")
+	
 	topic := new(models.Topic)
 	topic.ID = uint(id)
-
+	
 	isExist := topic.IsExist()
 	if !isExist {
 		ctx.Go(404, "帖子不存在")
 		return
 	}
-
-	var favor models.Favor
-	err := ctx.ReadJSON(&favor)
+	
+	favor := new(models.Favor)
+	err := ctx.ReadJSON(&form)
 	if err != nil {
 		ctx.Go(406, "参数有误")
 		return
@@ -297,6 +310,7 @@ func FavorTopic(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 	favor.TopicID = uint(id)
 	favor.UserID = user.ID
+	favor.CategoryID = form.CategoryID
 	isFavor := favor.IsExist()
 	if isFavor {
 		// 取消收藏
@@ -314,21 +328,32 @@ func FavorTopic(ctx *middleware.Context) {
 			return
 		}
 	}	
-		
-	ctx.Go(!isFavor)
+
+	form.IsFavor = !isFavor
+	form.ID = uint(id)
+	form.Nickname = user.Nickname
+	form.Avatar = user.Avatar
+	rt := make(map[string]interface{})
+	rt["type"] = "favor"
+	rt["data"] = form
+	go ctx.Client().Others(rt)
+
+	ctx.Go(form.IsFavor)
 }
 
 /**
  * 点赞
  */
 func Like(ctx *middleware.Context) {
+	var form TopicForm
 	id, _ := ctx.Params().GetInt("id")
-	like := new(models.Like)
 	user := ctx.Session().Get("user").(*models.User)
+	like := new(models.Like)
+	ctx.ReadJSON(&form)
+
 	like.TargetID = uint(id)
 	like.UserID = user.ID
-
-	ctx.ReadJSON(like)
+	like.Type = form.Type
 
 	isLike := like.IsExist()
 	var err error
@@ -348,5 +373,14 @@ func Like(ctx *middleware.Context) {
 		}
 	}
 
-	ctx.Go(!isLike)
+	form.IsLike = !isLike
+	form.ID = uint(id)
+	form.Nickname = user.Nickname
+	form.Avatar = user.Avatar
+	rt := make(map[string]interface{})
+	rt["type"] = "like"
+	rt["data"] = form
+	go ctx.Client().Others(rt)
+
+	ctx.Go(form.IsLike)
 }

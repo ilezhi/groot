@@ -98,18 +98,19 @@ func (topic *Topic) FindByID() error {
 		return err
 	}
 
-	topic.GetCount()
 	err = topic.GetTags()
 	return err
 }
 
-func (topic *Topic) GetCount() {
+func (topic *Topic) GetCount(uid uint) {
 	like := new(Like)
 	like.TargetID = topic.ID
 	like.Type = "topic"
+	like.UserID = uid
 
 	favor := new(Favor)
 	favor.TopicID = topic.ID
+	favor.UserID = uid
 
 	topic.LikeCount = like.Count()
 	topic.FavorCount = favor.Count()
