@@ -265,7 +265,7 @@ func PageTopics(lastID int64) *gorm.DB {
 		lastID = time.Now().Unix()
 	}
 
-	fields := `t.id, t.title, substring(t.content, 1, 140) as content, if(char_length(t.content) < 140, true, false) as is_full, t.author_id,
+	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
 						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
 						lu.nickname as last_nickname, lu.avatar as last_avatar`
 	
