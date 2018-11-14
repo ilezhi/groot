@@ -108,6 +108,7 @@ func (topic *Topic) FindFullByID(uid uint) error {
 			SELECT author_id, topic_id, updated_at from comments
 			UNION
 			SELECT author_id, topic_id, updated_at from replies
+			ORDER BY updated_at DESC
 		) d GROUP BY d.topic_id
 	) lp on lp.topic_id = t.id`
 	lastJoins := "left join users lu on lu.id = lp.author_id"
@@ -305,6 +306,7 @@ func PageTopics(lastID int64) *gorm.DB {
 			SELECT author_id, topic_id, updated_at from comments
 			UNION
 			SELECT author_id, topic_id, updated_at from replies
+			ORDER BY updated_at DESC
 		) d GROUP BY d.topic_id
 	) lp on lp.topic_id = t.id`
 	lastJoins := "left join users lu on lu.id = lp.author_id"
