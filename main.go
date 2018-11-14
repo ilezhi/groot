@@ -12,6 +12,7 @@ import (
 	// . "groot/models"
 	// "groot/tools"
 
+	
 	"groot/db"
 	"groot/route"
 	"groot/middleware"
@@ -69,6 +70,8 @@ func main() {
 	app.OnErrorCode(iris.StatusInternalServerError, func(ctx iris.Context) {
 		ctx.JSON(iris.Map{"code": ctx.StatusCode, "message": ctx.Values().GetString("message")})
 	})
+
+	app.Use(middleware.Handler(middleware.SetConfig))
 
 	app.Use(middleware.Response)
 	app.Get("/ws/{id:int}", middleware.Handler(middleware.WSConn))

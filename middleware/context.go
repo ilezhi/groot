@@ -7,6 +7,7 @@ import (
 	"github.com/kataras/iris/sessions"
 
 	"groot/models"
+	"groot/config"
 )
 
 var cookieNameForSessionID = "mycookiesessionnameid"
@@ -27,6 +28,7 @@ type Context struct {
 	iris.Context
 	sess					*sessions.Session
 	client				*Client
+	Config				*config.Config
 }
 
 var contextPool = sync.Pool{New: func() interface{} {

@@ -3,7 +3,7 @@ package controllers
 import (
 	// "math/rand"
 	// "time"
-	"fmt"
+	// "fmt"
 	"groot/models"
 	"groot/middleware"
 )
@@ -221,7 +221,6 @@ func PublishTopic(ctx *middleware.Context) {
 
 	err = topic.Validate()
 	if err != nil {
-		fmt.Println("err", err)
 		ctx.Go(406, "参数有误")
 		return
 	}
@@ -266,6 +265,7 @@ func UpdateTopic(ctx *middleware.Context) {
 	}
 
 	id, _ := ctx.Params().GetInt("id")
+	user := ctx.Session().Get("user").(*models.User)
 	topic := new(models.Topic)
 	topic.ID = uint(id)
 
@@ -277,8 +277,21 @@ func UpdateTopic(ctx *middleware.Context) {
 
 	topic.Content = form.Content
 	topic.Shared = form.Shared
-	topic.Update(&form.Tags)
+	err = topic.Update(&form.Tags)
+	if err != nil {
+		ctx.Go(500, "更新失败")
+		return
+	}
 
+	topic.GetTags()
+	topic.Nickname = user.Nickname
+	topic.Avatar = user.Avatar
+
+	rt := make(map[string]interface{})
+	rt["type"] = "topic"
+	rt["action"] = "update"
+	rt["data"] = topic
+	go ctx.Client().Others(rt)
 	ctx.Go(topic)
 }
 
@@ -324,7 +337,6 @@ func FavorTopic(ctx *middleware.Context) {
 	} else {
 		// 收藏
 		err = favor.Insert()
-		fmt.Println("favor", favor)
 		if err != nil {
 			ctx.Go(500, "收藏失败")
 			return
@@ -385,4 +397,72 @@ func Like(ctx *middleware.Context) {
 	go ctx.Client().Others(rt)
 
 	ctx.Go(form.IsLike)
+}
+
+func SetTop(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	topic.ID = uint(id)
+
+	isExist := topic.IsExist()
+
+	if !isExist {
+		ctx.Go(404, "话题不存在")
+		return
+	}
+
+	topic.Top = !topic.Top
+	err := topic.UpdateField("top", topic.Top)
+	if err != nil {
+		ctx.Go(500, "更新失败")
+		return
+	}
+
+	user := ctx.Session().Get("user").(*models.User)
+	err = topic.FindFullByID(user.ID)
+	if err != nil {
+		ctx.Go(500, "获取帖子失败")
+		return
+	}
+
+	rt := make(map[string]interface{})
+	rt["type"] = "top"
+	rt["data"] = topic
+	go ctx.Client().Others(rt)
+
+	ctx.Go(topic)
+}
+
+func SetAwesome(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	topic.ID = uint(id)
+
+	isExist := topic.IsExist()
+
+	if !isExist {
+		ctx.Go(404, "话题不存在")
+		return
+	}
+
+	topic.Awesome = !topic.Awesome
+	err := topic.UpdateField("awesome", topic.Awesome)
+	if err != nil {
+		ctx.Go(500, "更新失败")
+		return
+	}
+
+	user := ctx.Session().Get("user").(*models.User)
+	err = topic.FindFullByID(user.ID)
+	if err != nil {
+		ctx.Go(500, "获取帖子失败")
+		return
+	}
+
+	rt := make(map[string]interface{})
+	rt["type"] = "awesome"
+	rt["data"] = topic
+	go ctx.Client().Others(rt)
+
+	ctx.Go(topic)
 }

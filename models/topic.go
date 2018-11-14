@@ -46,11 +46,6 @@ func (topic *Topic) BeforeCreate() error {
 	return nil
 }
 
-func (topic *Topic) BeforeUpdate() error {
-	topic.ActiveAt = time.Now().Unix()
-	return nil
-}
-
 func (topic *Topic) Validate() error {
 	return validator.New().Struct(topic)
 }
@@ -98,6 +93,31 @@ func (topic *Topic) FindByID() error {
 		return err
 	}
 
+	err = topic.GetTags()
+	return err
+}
+
+func (topic *Topic) FindFullByID(uid uint) error {
+	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
+						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
+						lu.nickname as last_nickname, lu.avatar as last_avatar`
+	
+	joins := "JOIN users au ON t.author_id = au.id"
+	lastPost := `LEFT JOIN (
+		SELECT d.* from (
+			SELECT author_id, topic_id, updated_at from comments
+			UNION
+			SELECT author_id, topic_id, updated_at from replies
+		) d GROUP BY d.topic_id
+	) lp on lp.topic_id = t.id`
+	lastJoins := "left join users lu on lu.id = lp.author_id"
+	where := "t.id = ?"
+	err := sql.DB.Table("topics t").Select(fields).Where(where, topic.ID).Joins(joins).Joins(lastPost).Joins(lastJoins).Scan(topic).Error
+	if err != nil {
+		return err
+	}
+
+	topic.GetCount(uid)
 	err = topic.GetTags()
 	return err
 }
@@ -203,8 +223,9 @@ func (topic *Topic) Save(tags *[]uint) error {
 }
 
 func (topic *Topic) Update(tags *[]uint) error {
+	topic.ActiveAt = time.Now().Unix()
 	tx := sql.DB.Begin()
-	err := tx.Model(topic).Update("content", "shared", "active_at").Error
+	err := tx.Model(topic).Select("content", "shared", "active_at").Updates(*topic).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -236,6 +257,14 @@ func (topic *Topic) Update(tags *[]uint) error {
 
 func (topic *Topic) UpdateView() error {
 	return sql.DB.Model(topic).UpdateColumn("view", topic.View).Error
+}
+
+func (topic *Topic) UpdateField(field string, value bool) error {
+	now := time.Now().Unix()
+	fields := make(map[string]interface{})
+	fields[field] = value
+	fields["active_at"] = now
+	return sql.DB.Model(topic).UpdateColumns(fields).Error
 }
 
 func (topic *Topic) GetComments() (comments []*Comment, err error) {

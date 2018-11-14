@@ -4,6 +4,7 @@ import (
 	"groot/models"
 	"groot/middleware"
 	"groot/tools"
+	"groot/config"
 )
 
 type LoginInfo struct {
@@ -37,11 +38,17 @@ func SignIn(ctx *middleware.Context) {
 		return
 	}
 
+	admin := config.Values().Get("admin")
+	if admin == user.Email {
+		user.IsAdmin = true
+	}
+
 	ctx.Session().Set("user", user)
 	data := tools.StructToMap(*user)
 	delete(data, "password")
 	delete(data, "token")
 	delete(data, "secretKey")
+
 	ctx.Go(data)
 }
 
