@@ -64,7 +64,7 @@ func (ctx *Context) Session() *sessions.Session {
 
 func (ctx *Context) Client() *Client {
 	if ctx.client == nil {
-		user := ctx.sess.Get("user").(*models.User)
+		user := ctx.Session().Get("user").(*models.User)
 		ctx.client = hub.clients[user.ID]
 	}
 

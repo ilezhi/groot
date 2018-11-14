@@ -51,9 +51,15 @@ func Comment(ctx *middleware.Context) {
 		return
 	}
 
+	topic.LastAvatar = user.Avatar
+	topic.LastNickname = user.Nickname
+
 	rt := make(map[string]interface{})
 	rt["type"] = "comment"
-	rt["data"] = comt
+	rt["data"] = map[string]interface{}{
+		"topic": topic,
+		"comment": comt,
+	}
 	go ctx.Client().Others(rt)
 	ctx.Go(comt)
 }
@@ -88,10 +94,15 @@ func Reply(ctx *middleware.Context) {
 	}
 
 	reply.ByID()
+	topic.LastAvatar = user.Avatar
+	topic.LastNickname = user.Nickname
 
 	rt := make(map[string]interface{})
 	rt["type"] = "reply"
-	rt["data"] = reply
+	rt["data"] = map[string]interface{}{
+		"topic": topic,
+		"reply": reply,
+	}
 	go ctx.Client().Others(rt)
 	ctx.Go(reply)
 }
