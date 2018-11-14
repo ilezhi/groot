@@ -97,7 +97,7 @@ func (topic *Topic) FindByID() error {
 	return err
 }
 
-func (topic *Topic) FindFullByID(uid uint) error {
+func (topic *Topic) FindFullByID() error {
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
 						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
 						lu.nickname as last_nickname, lu.avatar as last_avatar`
@@ -118,7 +118,6 @@ func (topic *Topic) FindFullByID(uid uint) error {
 		return err
 	}
 
-	topic.GetCount(uid)
 	err = topic.GetTags()
 	return err
 }

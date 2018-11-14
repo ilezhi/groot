@@ -418,8 +418,7 @@ func SetTop(ctx *middleware.Context) {
 		return
 	}
 
-	user := ctx.Session().Get("user").(*models.User)
-	err = topic.FindFullByID(user.ID)
+	err = topic.FindFullByID()
 	if err != nil {
 		ctx.Go(500, "获取帖子失败")
 		return
@@ -452,8 +451,7 @@ func SetAwesome(ctx *middleware.Context) {
 		return
 	}
 
-	user := ctx.Session().Get("user").(*models.User)
-	err = topic.FindFullByID(user.ID)
+	err = topic.FindFullByID()
 	if err != nil {
 		ctx.Go(500, "获取帖子失败")
 		return
