@@ -17,7 +17,7 @@ func SignIn(ctx *middleware.Context) {
 	ctx.ReadJSON(params)
 
 	if params.Email == "" || params.Password == "" {
-		ctx.Go("406", "账号或密码不能为空")
+		ctx.Error(422, "账号或密码不能为空")
 		return
 	}
 
@@ -27,14 +27,14 @@ func SignIn(ctx *middleware.Context) {
 	
 	err := user.FindByEmail()
 	if err != nil {
-		ctx.Go(500, "用户不存在")
+		ctx.Error(404, "用户不存在")
 		return
 	}
 
 	// 验证密码是否正确
 	hash := tools.EncryptPwd(params.Password)
 	if user.Password != hash {
-		ctx.Go(406, "用户名或密码不正确")
+		ctx.Error(422, "用户名或密码不正确")
 		return
 	}
 
@@ -71,14 +71,14 @@ func UserInfo(ctx *middleware.Context) {
 	// 获取
 	categories, err := category.GroupBy()
 	if err != nil {
-		ctx.Go(500, "获取分类失败")
+		ctx.Error(500, "获取分类失败")
 		return
 	}
 
 	// 获取tags
 	tags, err := tag.GroupBy(user.ID)
 	if err != nil {
-		ctx.Go(500, "获取标签分类失败")
+		ctx.Error(500, "获取标签分类失败")
 		return
 	}
 

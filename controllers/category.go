@@ -16,13 +16,13 @@ func CreateCategory(ctx *middleware.Context) {
 
 	isExist := category.IsExist()
 	if isExist {
-		ctx.Go(406, "分类已存在")
+		ctx.Error(403, "资源已存在")
 		return
 	}
 
 	err := category.Save()
 	if err != nil {
-		ctx.Go(500, "新增失败")
+		ctx.Error(500, "新增分类失败")
 		return
 	}
 

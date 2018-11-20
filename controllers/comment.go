@@ -12,7 +12,7 @@ func Comments(ctx *middleware.Context) {
 
 	comments, err := topic.GetComments()
 	if err != nil {
-		ctx.Go(500, "获取评论失败")
+		ctx.Error(500, "获取评论失败")
 		return
 	}
 
@@ -29,7 +29,7 @@ func Comment(ctx *middleware.Context) {
 
 	exist := topic.IsExist()
 	if !exist {
-		ctx.Go(406, "帖子不存在")
+		ctx.Error(404)
 		return
 	}
 
@@ -37,7 +37,7 @@ func Comment(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 	ctx.ReadJSON(&comt)
 	if comt.Content == "" {
-		ctx.Go(406, "回复内容不能为空")
+		ctx.Error(422, "回复内容不能为空")
 		return
 	}
 
@@ -47,7 +47,7 @@ func Comment(ctx *middleware.Context) {
 	comt.Avatar = user.Avatar
 	err := comt.Save(topic)
 	if err != nil {
-		ctx.Go(500, "评论失败")
+		ctx.Error(500, "评论失败")
 		return
 	}
 
@@ -74,13 +74,13 @@ func Reply(ctx *middleware.Context) {
 
 	exist := topic.IsExist()
 	if !exist {
-		ctx.Go(406, "帖子不存在")
+		ctx.Error(404, "帖子不存在")
 	}
 
 	reply := new(models.Reply)
 	ctx.ReadJSON(reply)
 	if reply.Content == "" {
-		ctx.Go(406, "回复内容不能为空")
+		ctx.Error(422, "回复内容不能为空")
 		return
 	}
 
@@ -89,7 +89,7 @@ func Reply(ctx *middleware.Context) {
 	reply.TopicID = topic.ID
 	err := reply.Save(topic)
 	if err != nil {
-		ctx.Go(500, "回复失败")
+		ctx.Error(500, "回复失败")
 		return
 	}
 

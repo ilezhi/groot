@@ -31,7 +31,7 @@ func AllTopics(ctx *middleware.Context) {
 
 	topics, err := topic.All()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -46,7 +46,7 @@ func AwesomeTopics(ctx *middleware.Context) {
 
 	topics, err := topic.Awesomes()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -63,7 +63,7 @@ func DeptTopics(ctx *middleware.Context) {
 
 	topics, err := topic.Department(user.DeptID)
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -80,7 +80,7 @@ func MyTopics(ctx *middleware.Context) {
 
 	topics, err := topic.UnSolved()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -97,7 +97,7 @@ func SolvedTopics(ctx *middleware.Context) {
 
 	topics, err := topic.Solved()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -114,7 +114,7 @@ func AnswerTopics(ctx *middleware.Context) {
 
 	topics, err := topic.CommentAsAnswer()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -130,7 +130,7 @@ func FavorTopics(ctx *middleware.Context) {
 
 	topics, err := topic.GetByCategory(uint(id))
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -147,7 +147,7 @@ func SharedTopics(ctx *middleware.Context) {
 
 	topics, err := topic.SharedList()
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -165,7 +165,7 @@ func TagTopics(ctx *middleware.Context) {
 
 	topics, err := topic.GetByTag(uint(id))
 	if err != nil {
-		ctx.Go(500, "查询失败")
+		ctx.Error(500, "查询失败")
 		return
 	}
 
@@ -179,19 +179,19 @@ func Topic(ctx *middleware.Context) {
 
 	isExist := topic.IsExist()
 	if !isExist {
-		ctx.Go(404, "帖子不翼而飞")
+		ctx.Error(404)
 		return
 	}
 
 	err := topic.FindByID()
 	if err != nil {
-		ctx.Go(500, "获取帖子标签失败")
+		ctx.Error(500, "获取帖子标签失败")
 		return
 	}
 
 	topic.View += 1
 	topic.UpdateView()
-	
+
 	user := ctx.Session().Get("user").(*models.User)
 	topic.GetCount(user.ID)
 	topic.IsFull = true
@@ -207,7 +207,7 @@ func PublishTopic(ctx *middleware.Context) {
 	var form TopicForm
 	err := ctx.ReadJSON(&form)
 	if err != nil {
-		ctx.Go(406, "参数有误")
+		ctx.Error(400)
 		return
 	}
 
@@ -221,14 +221,14 @@ func PublishTopic(ctx *middleware.Context) {
 
 	err = topic.Validate()
 	if err != nil {
-		ctx.Go(406, "参数有误")
+		ctx.Error(422)
 		return
 	}
 
 	// 添加话题和tag
 	err = topic.Save(&form.Tags)
 	if err != nil {
-		ctx.Go(500, "新增失败")
+		ctx.Error(500, "新增失败")
 		return
 	}
 
@@ -250,17 +250,17 @@ func UpdateTopic(ctx *middleware.Context) {
 	var form TopicForm
 	err := ctx.ReadJSON(&form)
 	if err != nil {
-		ctx.Go(406, "参数有误")
+		ctx.Error(400)
 		return
 	}
 
 	if form.Content == "" {
-		ctx.Go(406, "帖子内容不能为空")
+		ctx.Error(422, "帖子内容不能为空")
 		return
 	}
 
 	if len(form.Tags) < 1 {
-		ctx.Go(406, "帖子至少需要添加一个标签")
+		ctx.Error(422, "帖子至少需要添加一个标签")
 		return
 	}
 
@@ -271,7 +271,7 @@ func UpdateTopic(ctx *middleware.Context) {
 
 	isExist := topic.IsExist()
 	if !isExist {
-		ctx.Go(404, "帖子不存在")
+		ctx.Error(404)
 		return
 	}
 
@@ -279,7 +279,7 @@ func UpdateTopic(ctx *middleware.Context) {
 	topic.Shared = form.Shared
 	err = topic.Update(&form.Tags)
 	if err != nil {
-		ctx.Go(500, "更新失败")
+		ctx.Error(500, "更新失败")
 		return
 	}
 
@@ -311,14 +311,14 @@ func FavorTopic(ctx *middleware.Context) {
 	
 	isExist := topic.IsExist()
 	if !isExist {
-		ctx.Go(404, "帖子不存在")
+		ctx.Error(404)
 		return
 	}
 	
 	favor := new(models.Favor)
 	err := ctx.ReadJSON(&form)
 	if err != nil {
-		ctx.Go(406, "参数有误")
+		ctx.Error(400)
 		return
 	}
 
@@ -331,14 +331,14 @@ func FavorTopic(ctx *middleware.Context) {
 		// 取消收藏
 		err = favor.Delete()
 		if err != nil {
-			ctx.Go(500, "取消收藏失败")
+			ctx.Error(500, "取消收藏失败")
 			return
 		}
 	} else {
 		// 收藏
 		err = favor.Insert()
 		if err != nil {
-			ctx.Go(500, "收藏失败")
+			ctx.Error(500, "收藏失败")
 			return
 		}
 	}	
@@ -376,13 +376,13 @@ func Like(ctx *middleware.Context) {
 		err = like.Delete()
 
 		if err != nil {
-			ctx.Go(500, "取消点赞失败")
+			ctx.Error(500, "取消点赞失败")
 			return
 		}
 	} else {
 		err = like.Save()
 		if err != nil {
-			ctx.Go(500, "点赞失败")
+			ctx.Error(500, "点赞失败")
 			return
 		}
 	}
@@ -407,20 +407,20 @@ func SetTop(ctx *middleware.Context) {
 	isExist := topic.IsExist()
 
 	if !isExist {
-		ctx.Go(404, "话题不存在")
+		ctx.Error(404)
 		return
 	}
 
 	topic.Top = !topic.Top
 	err := topic.UpdateField("top", topic.Top)
 	if err != nil {
-		ctx.Go(500, "更新失败")
+		ctx.Error(500, "更新失败")
 		return
 	}
 
 	err = topic.FindFullByID()
 	if err != nil {
-		ctx.Go(500, "获取帖子失败")
+		ctx.Error(500, "获取帖子失败")
 		return
 	}
 
@@ -440,20 +440,20 @@ func SetAwesome(ctx *middleware.Context) {
 	isExist := topic.IsExist()
 
 	if !isExist {
-		ctx.Go(404, "话题不存在")
+		ctx.Error(404)
 		return
 	}
 
 	topic.Awesome = !topic.Awesome
 	err := topic.UpdateField("awesome", topic.Awesome)
 	if err != nil {
-		ctx.Go(500, "更新失败")
+		ctx.Error(500, "更新失败")
 		return
 	}
 
 	err = topic.FindFullByID()
 	if err != nil {
-		ctx.Go(500, "获取帖子失败")
+		ctx.Error(500, "获取帖子失败")
 		return
 	}
 

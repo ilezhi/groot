@@ -71,22 +71,10 @@ func (ctx *Context) Client() *Client {
 	return ctx.client
 }
 
-func (ctx *Context) Go(a ...interface{}) {
-	n := len(a)
-	var code int
-	var message string
-	var data interface{}
-
-	if n == 1 {
-		code = 0
-		message = "请求成功"
-		data = a[0]
-	}
-	
-	if n == 2 {
-		code, _ = a[0].(int)
-		message, _ = a[1].(string)
-	}
+func (ctx *Context) Go(p interface{}) {
+	code := 0
+	message := "请求成功"
+	data := p
 
 	ctx.Values().Set("code", code)
 	ctx.Values().Set("message", message)

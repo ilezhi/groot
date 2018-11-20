@@ -71,7 +71,9 @@ func (c *Client) To(id uint, message interface{}) {
 }
 
 func (c *Client) All(message interface{}) {
-	ids := make([]uint, 0, len(c.hub.clients) - 1)
+	len := len(c.hub.clients)
+	ids := make([]uint, 0, len - 1)
+
 	for id := range c.hub.clients {
 		ids = append(ids, id)
 	}
@@ -84,7 +86,9 @@ func (c *Client) All(message interface{}) {
 }
 
 func (c *Client) Others(message interface{}) {
-	ids := make([]uint, 0, len(c.hub.clients) - 1)
+	len := len(c.hub.clients)
+	ids := make([]uint, 0, len - 1)
+
 	for id := range c.hub.clients {
 		if id == c.id {
 			continue

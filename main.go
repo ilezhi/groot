@@ -79,7 +79,7 @@ func main() {
 	Router.Register(app)
 
 	app.Run(
-		iris.Addr("172.18.2.231:9000"),
+		iris.Addr("localhost:9000"),
 		iris.WithoutVersionChecker,
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,

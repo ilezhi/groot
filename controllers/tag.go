@@ -16,7 +16,7 @@ func CreateTag(ctx *middleware.Context) {
 
 	err := tag.FindAndSave()
 	if err != nil {
-		ctx.Go(500, "新增失败")
+		ctx.Error(500, "新增失败")
 		return
 	}
 
