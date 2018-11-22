@@ -1,11 +1,17 @@
 package middleware
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
+)
+
+var (
+	pong = map[string]string{
+		"tag": "heartbeat",
+		"text": "pong",
+	}
 )
 
 // 保存每个客户端连接信息
@@ -19,8 +25,6 @@ type Client struct {
 	conn *websocket.Conn
 }
 
-type Params interface{}
-
 type Message struct {
 	to []uint
 	data interface{}
@@ -33,15 +37,12 @@ func (c *Client) readPump() {
 	}()
 
 	for {
-		var m Params
-		err := c.conn.ReadJSON(&m)
+		_, _, err := c.conn.ReadMessage()
 		if err != nil {
-			fmt.Println("readjson error", err)
 			break
 		}
 
-		fmt.Println("readjson success", m)
-		c.Others(m)
+		c.To(c.id, pong)
 	}
 }
 

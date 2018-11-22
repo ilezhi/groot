@@ -2,7 +2,7 @@ package controllers
 
 import (
 	// "math/rand"
-	// "time"
+	"time"
 	// "fmt"
 	"groot/models"
 	"groot/middleware"
@@ -125,7 +125,7 @@ func FavorTopics(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	lastID, _ := ctx.URLParamInt64("lastID")
 	topic := new(models.Topic)
-	
+
 	topic.ActiveAt = lastID
 
 	topics, err := topic.GetByCategory(uint(id))
@@ -164,6 +164,20 @@ func TagTopics(ctx *middleware.Context) {
 	topic.AuthorID = user.ID
 
 	topics, err := topic.GetByTag(uint(id))
+	if err != nil {
+		ctx.Error(500, "查询失败")
+		return
+	}
+
+	ctx.Go(topics)
+}
+
+func Top(ctx *middleware.Context) {
+	topic := new(models.Topic)
+
+	topic.ActiveAt = time.Now().Unix()
+
+	topics, err := topic.TopTopics()
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return

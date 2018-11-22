@@ -33,6 +33,7 @@ type Topic struct {
 	FavorCount		int						`json:"favorCount" gorm:"-"`
 	Nickname			string				`json:"nickname" gorm:"-"`
 	Avatar				string				`json:"avatar" gorm:"-"`
+	DeptID				uint					`json:"deptID" gorm:"-"`
 	IsLike				bool					`json:"isLike" gorm:"-"`
 	IsFavor				bool					`json:"isFavor" gorm:"-"`
 	CategoryID		uint					`json:"categoryID" gorm:"-"`
@@ -54,8 +55,12 @@ func (topic *Topic) IsExist() bool {
 	return !sql.DB.First(topic, topic.ID).RecordNotFound()
 }
 
+func (topic *Topic) TopTopics() ([]*Topic, error) {
+	return topic.SearchByPage("t.top = ?", 1)
+}
+
 func (topic *Topic) All() ([]*Topic, error) {
-	return topic.SearchByPage("1 = ?", 1)
+	return topic.SearchByPage("1 = ? AND t.top <> 1", 1)
 }
 
 func (topic *Topic) Awesomes() ([]*Topic, error) {
@@ -99,7 +104,7 @@ func (topic *Topic) FindByID() error {
 
 func (topic *Topic) FindFullByID() error {
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
-						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
+						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname, au.dept_id,
 						lu.nickname as last_nickname, lu.avatar as last_avatar`
 	
 	joins := "JOIN users au ON t.author_id = au.id"
@@ -153,7 +158,7 @@ func (topic *Topic) GetComtCount() {
  * id 分类id
  */
 func (topic *Topic) GetByCategory(id uint) (topics []*Topic, err error) {
-	joins := "JOIN favor f ON f.topic_id = t.id AND f.id = ?"
+	joins := "JOIN favors f ON f.topic_id = t.id AND f.category_id = ?"
 	err = PageTopics(topic.ActiveAt).Joins(joins, id).Scan(&topics).Error
 	if err != nil {
 		return
@@ -296,7 +301,7 @@ func PageTopics(lastID int64) *gorm.DB {
 	}
 
 	fields := `t.id, t.title, substring(t.content, 1, 140) as content, t.author_id,
-						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname,
+						t.view, t.top, t.shared, t.awesome, t.active_at, t.created_at, t.answer_id, au.avatar, au.nickname, au.dept_id,
 						lu.nickname as last_nickname, lu.avatar as last_avatar`
 	
 	joins := "JOIN users au ON t.author_id = au.id"
@@ -307,8 +312,8 @@ func PageTopics(lastID int64) *gorm.DB {
 			SELECT author_id, topic_id, updated_at from replies
 			ORDER BY updated_at DESC
 		) d GROUP BY d.topic_id
-	) lp on lp.topic_id = t.id`
-	lastJoins := "left join users lu on lu.id = lp.author_id"
+	) lp ON lp.topic_id = t.id`
+	lastJoins := "LEFT JOIN users lu ON lu.id = lp.author_id"
 	where := "t.active_at < ? AND t.issue = 1"
 	order := "t.active_at DESC"
 	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Joins(joins).Joins(lastPost).Joins(lastJoins).Order(order)

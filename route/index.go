@@ -11,6 +11,7 @@ func Register(app *iris.Application) {
 	site := app.Party("/ajax/v1", middleware.Handler(middleware.IsLogin))
 	{
 		// 获取页面topics
+		site.Get("/topics/top", middleware.Handler(controllers.Top))
 		site.Get("/topics/all", middleware.Handler(controllers.AllTopics))
 		site.Get("/topics/awesome", middleware.Handler(controllers.AwesomeTopics))
 		site.Get("/topics/department", middleware.Handler(controllers.DeptTopics))
