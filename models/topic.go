@@ -164,6 +164,10 @@ func (topic *Topic) GetByCategory(id uint) (topics []*Topic, err error) {
 		return
 	}
 
+	for _, t := range topics {
+		t.GetComtCount()
+	}
+
 	err = SetTag(&topics)
 	return
 }
@@ -173,8 +177,17 @@ func (topic *Topic) SharedList() (topics []*Topic, err error) {
 }
 
 func (topic *Topic) GetByTag(id uint) (topics []*Topic, err error) {
-	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.id = ?"
-	err = PageTopics(topic.ActiveAt).Joins(joins, topic.ID).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
+	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.tag_id = ?"
+	err = PageTopics(topic.ActiveAt).Joins(joins, id).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
+	if err != nil {
+		return
+	}
+
+	for _, t := range topics {
+		t.GetComtCount()
+	}
+
+	err = SetTag(&topics)
 	return
 }
 
