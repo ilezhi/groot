@@ -25,11 +25,12 @@ type TopicForm struct {
 
 func AllTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 
 	topic.ActiveAt = lastID
 
-	topics, err := topic.All()
+	topics, err := topic.All(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -40,11 +41,12 @@ func AllTopics(ctx *middleware.Context) {
 
 func AwesomeTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 
 	topic.ActiveAt = lastID
 
-	topics, err := topic.Awesomes()
+	topics, err := topic.Awesomes(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -55,13 +57,14 @@ func AwesomeTopics(ctx *middleware.Context) {
 
 func DeptTopics(ctx *middleware.Context) {
 	lastID, err := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.Department(user.DeptID)
+	topics, err := topic.Department(user.DeptID, size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -72,13 +75,14 @@ func DeptTopics(ctx *middleware.Context) {
 
 func MyTopics(ctx *middleware.Context) {
 	lastID, err := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.UnSolved()
+	topics, err := topic.UnSolved(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -89,13 +93,14 @@ func MyTopics(ctx *middleware.Context) {
 
 func SolvedTopics(ctx *middleware.Context) {
 	lastID, err := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.Solved()
+	topics, err := topic.Solved(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -106,13 +111,14 @@ func SolvedTopics(ctx *middleware.Context) {
 
 func AnswerTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.CommentAsAnswer()
+	topics, err := topic.CommentAsAnswer(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -124,11 +130,12 @@ func AnswerTopics(ctx *middleware.Context) {
 func FavorTopics(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 
 	topic.ActiveAt = lastID
 
-	topics, err := topic.GetByCategory(uint(id))
+	topics, err := topic.GetByCategory(uint(id), size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -139,13 +146,14 @@ func FavorTopics(ctx *middleware.Context) {
 
 func SharedTopics(ctx *middleware.Context) {
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.SharedList()
+	topics, err := topic.SharedList(size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -157,13 +165,14 @@ func SharedTopics(ctx *middleware.Context) {
 func TagTopics(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	lastID, _ := ctx.URLParamInt64("lastID")
+	size, _ := ctx.URLParamInt("size")
 	topic := new(models.Topic)
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.GetByTag(uint(id))
+	topics, err := topic.GetByTag(uint(id), size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return

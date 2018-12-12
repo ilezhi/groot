@@ -56,32 +56,32 @@ func (topic *Topic) IsExist() bool {
 }
 
 func (topic *Topic) TopTopics() ([]*Topic, error) {
-	return topic.SearchByPage("t.top = ?", 1)
+	return topic.SearchByPage("t.top = ?", 1, 5)
 }
 
-func (topic *Topic) All() ([]*Topic, error) {
-	return topic.SearchByPage("1 = ? AND t.top <> 1", 1)
+func (topic *Topic) All(size int) ([]*Topic, error) {
+	return topic.SearchByPage("1 = ? AND t.top <> 1", 1, size)
 }
 
-func (topic *Topic) Awesomes() ([]*Topic, error) {
-	return topic.SearchByPage("t.awesome = ?", 1)
+func (topic *Topic) Awesomes(size int) ([]*Topic, error) {
+	return topic.SearchByPage("t.awesome = ?", 1, size)
 }
 
-func (topic *Topic) Department(deptID uint) (topics []*Topic, err error) {
-	return topic.SearchByPage("au.dept_id = ?", deptID)
+func (topic *Topic) Department(deptID uint, size int) (topics []*Topic, err error) {
+	return topic.SearchByPage("au.dept_id = ?", deptID, size)
 }
 
-func (topic *Topic) UnSolved() (topics []*Topic, err error) {
-	return topic.SearchByPage("au.id = ? AND t.answer_id = 0", topic.AuthorID)
+func (topic *Topic) UnSolved(size int) (topics []*Topic, err error) {
+	return topic.SearchByPage("au.id = ? AND t.answer_id = 0", topic.AuthorID, size)
 }
 
-func (topic *Topic) Solved() (topics []*Topic, err error) {
-	return topic.SearchByPage("au.id = ? AND t.answer_id <> 0", topic.AuthorID)
+func (topic *Topic) Solved(size int) (topics []*Topic, err error) {
+	return topic.SearchByPage("au.id = ? AND t.answer_id <> 0", topic.AuthorID, size)
 }
 
-func (topic *Topic) CommentAsAnswer() (topics []*Topic, err error) {
+func (topic *Topic) CommentAsAnswer(size int) (topics []*Topic, err error) {
 	joins := "JOIN comments c ON t.answer_id = c.id"
-	err = PageTopics(topic.ActiveAt).Joins(joins).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt, size).Joins(joins).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -157,9 +157,9 @@ func (topic *Topic) GetComtCount() {
 /**
  * id 分类id
  */
-func (topic *Topic) GetByCategory(id uint) (topics []*Topic, err error) {
+func (topic *Topic) GetByCategory(id uint, size int) (topics []*Topic, err error) {
 	joins := "JOIN favors f ON f.topic_id = t.id AND f.category_id = ?"
-	err = PageTopics(topic.ActiveAt).Joins(joins, id).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt, size).Joins(joins, id).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -172,13 +172,13 @@ func (topic *Topic) GetByCategory(id uint) (topics []*Topic, err error) {
 	return
 }
 
-func (topic *Topic) SharedList() (topics []*Topic, err error) {
-	return topic.SearchByPage("t.shared = 1 AND t.author_id = ?", topic.AuthorID)
+func (topic *Topic) SharedList(size int) (topics []*Topic, err error) {
+	return topic.SearchByPage("t.shared = 1 AND t.author_id = ?", topic.AuthorID, size)
 }
 
-func (topic *Topic) GetByTag(id uint) (topics []*Topic, err error) {
+func (topic *Topic) GetByTag(id uint, size int) (topics []*Topic, err error) {
 	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.tag_id = ?"
-	err = PageTopics(topic.ActiveAt).Joins(joins, id).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
+	err = PageTopics(topic.ActiveAt, size).Joins(joins, id).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -191,8 +191,8 @@ func (topic *Topic) GetByTag(id uint) (topics []*Topic, err error) {
 	return
 }
 
-func (topic *Topic) SearchByPage(where string, val interface{}) (topics []*Topic, err error) {
-	err = PageTopics(topic.ActiveAt).Where(where, val).Scan(&topics).Error
+func (topic *Topic) SearchByPage(where string, val interface{}, size int) (topics []*Topic, err error) {
+	err = PageTopics(topic.ActiveAt, size).Where(where, val).Scan(&topics).Error
 	if err != nil {
 		return
 	}
@@ -308,7 +308,7 @@ func (topic *Topic) GetComments() (comments []*Comment, err error) {
 	return
 }
 
-func PageTopics(lastID int64) *gorm.DB {
+func PageTopics(lastID int64, size int) *gorm.DB {
 	if lastID == -1 {
 		lastID = time.Now().Unix()
 	}
@@ -329,7 +329,7 @@ func PageTopics(lastID int64) *gorm.DB {
 	lastJoins := "LEFT JOIN users lu ON lu.id = lp.author_id"
 	where := "t.active_at < ? AND t.issue = 1"
 	order := "t.active_at DESC"
-	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Joins(joins).Joins(lastPost).Joins(lastJoins).Order(order)
+	return sql.DB.Table("topics t").Select(fields).Where(where, lastID).Limit(size).Joins(joins).Joins(lastPost).Joins(lastJoins).Order(order)
 }
 
 func SetTag(topics *[]*Topic) error {
