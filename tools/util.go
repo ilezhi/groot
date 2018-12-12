@@ -1,7 +1,10 @@
 package tools
 
 import (
+	"strings"
 	"reflect"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 func StructToMap(obj interface{}) map[string]interface{} {
@@ -16,4 +19,10 @@ func StructToMap(obj interface{}) map[string]interface{} {
 	}
 
 	return data
+}
+
+func GetAvatar(email string) string {
+	h := md5.New()
+	h.Write([]byte(strings.ToLower(email)))
+	return "//gravatar.com/avatar/" + hex.EncodeToString(h.Sum(nil)) + "?size=48"
 }

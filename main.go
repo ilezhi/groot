@@ -51,6 +51,28 @@ import (
 // 		IsVerify: true,
 // 	}
 
+	// depts := []*Department{
+	// 	&Department{
+	// 		Name: "技术部",
+	// 	},
+	// 	&Department{
+	// 		Name: "市场部",
+	// 	},
+	// 	&Department{
+	// 		Name: "财务部",
+	// 	},
+	// 	&Department{
+	// 		Name: "人事部",
+	// 	},
+	// }
+
+	// for i, dept := range depts {
+	// 	err := DB.Create(dept).Error
+	// 	if err != nil {
+	// 		fmt.Println("新增部门失败", i)
+	// 	}
+	// }
+
 // 	err = DB.Create(&user).Error
 
 // 	if err != nil {

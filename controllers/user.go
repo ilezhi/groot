@@ -12,6 +12,13 @@ type LoginInfo struct {
 	Password	string	`json:"password"`
 }
 
+type SignupInfo struct {
+	LoginInfo
+	ConfirmPassword string `json:"confirmPassword"`
+	Nickname   string      `json:"nickname"`
+	DeptID		 uint				 `json:"deptID"`
+}
+
 func SignIn(ctx *middleware.Context) {
 	params := new(LoginInfo)
 	ctx.ReadJSON(params)
@@ -52,6 +59,43 @@ func SignIn(ctx *middleware.Context) {
 	ctx.Go(data)
 }
 
+func SignUp(ctx *middleware.Context) {
+	params := new(SignupInfo)
+	ctx.ReadJSON(params)
+
+	if params.Email == "" || params.Password == "" {
+		ctx.Error(422, "账号或密码不能为空")
+		return
+	}
+
+	if params.Password != params.ConfirmPassword {
+		ctx.Error(422, "两次密码输入不一致")
+		return
+	}
+
+	user := new(models.User)
+	user.Email = params.Email
+	err := user.FindByEmail()
+	if err == nil {
+		ctx.Error(422, "邮箱已存在")
+		return
+	}
+
+	user.Password = tools.EncryptPwd(params.Password)
+	user.Nickname = params.Nickname
+	user.Name = params.Nickname
+	user.Avatar = tools.GetAvatar(params.Email)
+	user.DeptID = params.DeptID
+	err = user.Save()
+	if err != nil {
+		ctx.Error(500, "注册失败")
+		return
+	}
+
+	
+	ctx.Go("注册成功")
+}
+
 func LoginUser(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 	data := tools.StructToMap(*user)
@@ -86,4 +130,33 @@ func UserInfo(ctx *middleware.Context) {
 	data["categories"] = categories
 	data["tags"] = tags
 	ctx.Go(data)
+}
+
+func IsExistByEmail(ctx *middleware.Context) {
+	email := ctx.URLParam("email")
+	if email == "" {
+		ctx.Error(400)
+		return
+	}
+	
+	user := new(models.User)
+	user.Email = email
+	err := user.FindByEmail()
+	if err == nil {
+		ctx.Go(true)
+		return
+	}
+
+	ctx.Go(false)
+}
+
+func Departments(ctx *middleware.Context) {
+	dept := new(models.Department)
+	depts, err := dept.List()
+	if err != nil {
+		ctx.Error(500)
+		return
+	}
+
+	ctx.Go(depts)
 }

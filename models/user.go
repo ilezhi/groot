@@ -35,6 +35,10 @@ func (user *User) Validate() error {
 	return err
 }
 
+func (user *User) Save() error {
+	return sql.DB.Create(user).Error
+}
+
 func (user *User) Find() error {
 	return sql.DB.First(user, user.ID).Error
 }
