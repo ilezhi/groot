@@ -16,6 +16,8 @@ type Comment struct {
 	Title			string			`json:"title" gorm:"-"`
 	Shared    bool  			`json:"shared" gorm:"-"`
 	RID       uint        `json:"rid" gorm:"-"`
+	IsLike		bool				`json:"isLike" gorm:"-"`
+	LikeCount	int					`json:"likeCount" gorm:"-"`
 }
 
 // TODO: topic
@@ -48,7 +50,7 @@ func (comt *Comment) Delete() error {
 	return sql.DB.Delete(comt).Error
 }
 
-func (c *Comment) GetReplies() error {
+func (c *Comment) GetReplies(uid uint) error {
 	var replies []*Reply
 	fields := `r.id, r.content, r.comment_id, r.topic_id, r.author_id, r.receiver_id, r.updated_at, r.created_at,
 						 au.nickname, au.avatar, ru.nickname as receiver_name, ru.avatar as receiver_avatar`
@@ -59,6 +61,16 @@ func (c *Comment) GetReplies() error {
 	err := sql.DB.Table("replies r").Select(fields).Where("r.comment_id = ?", c.ID).Joins(joinsUser).Joins(joinsReceiver).Order(order).Scan(&replies).Error
 	if err != nil {
 		return err
+	}
+
+	// 获取评论回复
+	for _, reply := range replies {
+		like := new(Like)
+		like.TargetID = reply.ID
+		like.Type = "reply"
+		like.UserID = uid
+		reply.LikeCount = like.Count()
+		reply.IsLike = like.IsExist()
 	}
 
 	c.Replies = replies

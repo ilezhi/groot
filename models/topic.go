@@ -285,7 +285,7 @@ func (topic *Topic) UpdateField(field string, value bool) error {
 	return sql.DB.Model(topic).UpdateColumns(fields).Error
 }
 
-func (topic *Topic) GetComments() (comments []*Comment, err error) {
+func (topic *Topic) GetComments(uid uint) (comments []*Comment, err error) {
 	fields := `c.id, c.content, c.topic_id, c.updated_at, c.author_id, c.created_at,
 							u.nickname, u.avatar`
 
@@ -299,7 +299,14 @@ func (topic *Topic) GetComments() (comments []*Comment, err error) {
 
 	// 获取评论回复
 	for _, comt := range comments {
-		err = comt.GetReplies()
+		like := new(Like)
+		like.TargetID = comt.ID
+		like.Type = "comment"
+		like.UserID = uid
+		comt.LikeCount = like.Count()
+		comt.IsLike = like.IsExist()
+
+		err = comt.GetReplies(uid)
 		if err != nil {
 			return
 		}

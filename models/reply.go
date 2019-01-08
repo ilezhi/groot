@@ -19,6 +19,8 @@ type Reply struct {
 	Title						string			`json:"title" gorm:"-"`
 	Shared					bool  			`json:"shared" gorm:"-"`
 	RID             uint        `json:"rid" gorm:"-"`
+	IsLike					bool				`json:"isLike" gorm:"-"`
+	LikeCount				int					`json:"likeCount" gorm:"-"`
 }
 
 // TODO: topic

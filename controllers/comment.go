@@ -10,7 +10,8 @@ func Comments(ctx *middleware.Context) {
 	topic := new(models.Topic)
 	topic.ID = uint(id)
 
-	comments, err := topic.GetComments()
+	user := ctx.Session().Get("user").(*models.User)
+	comments, err := topic.GetComments(user.ID)
 	if err != nil {
 		ctx.Error(500, "获取评论失败")
 		return
