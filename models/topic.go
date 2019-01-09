@@ -79,9 +79,9 @@ func (topic *Topic) Solved(size int) (topics []*Topic, err error) {
 	return topic.SearchByPage("au.id = ? AND t.answer_id <> 0", topic.AuthorID, size)
 }
 
-func (topic *Topic) CommentAsAnswer(size int) (topics []*Topic, err error) {
-	joins := "JOIN comments c ON t.answer_id = c.id"
-	err = PageTopics(topic.ActiveAt, size).Joins(joins).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
+func (topic *Topic) CommentAsAnswer(size int, uid uint) (topics []*Topic, err error) {
+	joins := "JOIN comments c ON t.answer_id = c.id AND c.author_id = ?"
+	err = PageTopics(topic.ActiveAt, size).Joins(joins, uid).Scan(&topics).Error
 	if err != nil {
 		return
 	}

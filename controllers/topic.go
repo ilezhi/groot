@@ -116,9 +116,8 @@ func AnswerTopics(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 
 	topic.ActiveAt = lastID
-	topic.AuthorID = user.ID
 
-	topics, err := topic.CommentAsAnswer(size)
+	topics, err := topic.CommentAsAnswer(size, user.ID)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
