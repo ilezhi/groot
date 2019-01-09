@@ -40,6 +40,9 @@ func Register(app *iris.Application) {
 		user.Post("/comment/{id:int}", middleware.Handler(controllers.Comment))
 		user.Post("/comment/reply/{id:int}", middleware.Handler(controllers.Reply))
 
+		// 设置回复为答案
+		user.Post("/comment/answer/{id:int}", middleware.Handler(controllers.AsAnswer))
+
 		// 登录, 用户
 		user.Get("/user/info", middleware.Handler(controllers.UserInfo))
 		user.Get("/user", middleware.Handler(controllers.LoginUser))

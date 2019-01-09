@@ -277,7 +277,7 @@ func (topic *Topic) UpdateView() error {
 	return sql.DB.Model(topic).UpdateColumn("view", topic.View).Error
 }
 
-func (topic *Topic) UpdateField(field string, value bool) error {
+func (topic *Topic) UpdateField(field string, value interface{}) error {
 	now := time.Now().Unix()
 	fields := make(map[string]interface{})
 	fields[field] = value

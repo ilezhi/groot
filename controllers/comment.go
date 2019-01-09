@@ -107,3 +107,29 @@ func Reply(ctx *middleware.Context) {
 	go ctx.Client().Others(rt)
 	ctx.Go(reply)
 }
+
+// 评论作为答案
+func AsAnswer(ctx *middleware.Context) {
+	id, _ := ctx.Params().GetInt("id")
+	topic := new(models.Topic)
+	ctx.ReadJSON(topic)
+
+	isExist := topic.IsExist()
+
+	if !isExist {
+		ctx.Error(404)
+		return
+	}
+
+	if topic.AnswerID == uint(id) {
+		id = 0
+	}
+
+	err := topic.UpdateField("answer_id", id)
+	if err != nil {
+		ctx.Error(500)
+		return
+	}
+
+	ctx.Go(topic)
+}
