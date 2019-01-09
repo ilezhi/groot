@@ -20,6 +20,10 @@ type Comment struct {
 	LikeCount	int					`json:"likeCount" gorm:"-"`
 }
 
+func (comt *Comment) FindByID() error {
+	return sql.DB.First(comt, comt.ID).Error
+}
+
 // TODO: topic
 func (comt *Comment) Save(topic *Topic) error {
 	now := time.Now().Unix()

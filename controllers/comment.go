@@ -5,6 +5,11 @@ import (
 	"groot/middleware"
 )
 
+type AnswerForm struct {
+	TopicID uint `json:"topicID"`
+	AuthorID uint `json:"authorID"`
+}
+
 func Comments(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
@@ -110,12 +115,14 @@ func Reply(ctx *middleware.Context) {
 
 // 评论作为答案
 func AsAnswer(ctx *middleware.Context) {
+	var form AnswerForm
+
 	id, _ := ctx.Params().GetInt("id")
+	ctx.ReadJSON(&form)
 	topic := new(models.Topic)
-	ctx.ReadJSON(topic)
+	topic.ID = form.TopicID
 
 	isExist := topic.IsExist()
-
 	if !isExist {
 		ctx.Error(404)
 		return
@@ -131,5 +138,16 @@ func AsAnswer(ctx *middleware.Context) {
 		return
 	}
 
+	user := ctx.Session().Get("user").(*models.User)
+	topic.Avatar = user.Avatar
+	topic.Nickname = user.Nickname
+
+	rt := make(map[string]interface{})
+	rt["type"] = "answer"
+	rt["data"] = map[string]interface{}{
+		"topic": topic,
+		"commentAuthorID": form.AuthorID,
+	}
+	go ctx.Client().Others(rt)
 	ctx.Go(topic)
 }
