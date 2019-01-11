@@ -26,3 +26,14 @@ func GetAvatar(email string) string {
 	h.Write([]byte(strings.ToLower(email)))
 	return "//gravatar.com/avatar/" + hex.EncodeToString(h.Sum(nil)) + "?size=48"
 }
+
+func IsContains(item string, a interface{}) bool {
+	arr, _ := a.([]string)
+	for _, val := range arr {
+		if item == val {
+			return true
+		}
+	}
+
+	return false
+}

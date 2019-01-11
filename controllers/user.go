@@ -46,7 +46,7 @@ func SignIn(ctx *middleware.Context) {
 	}
 
 	admin := config.Values().Get("admin")
-	if admin == user.Email {
+	if tools.IsContains(user.Email, admin) {
 		user.IsAdmin = true
 	}
 

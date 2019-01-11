@@ -11,7 +11,7 @@ type Config struct {
 	Version string					`json:"version"`
 	Description string			`json:"desc"`
 	Keywords string					`json:"keywords"`
-	Admin string						`json:"admin"`
+	Admin []string					`json:"admin"`
 	DB string								`json:"db"`
 	Session_Secret string		`json:"ss"`
 	Port int								`json:"port"`
@@ -37,8 +37,17 @@ func (c *Config) Get(key string) interface{} {
 		fieldInfo := v.Type().Field(i)
 		tag := fieldInfo.Tag
 		name := tag.Get("json")
+
 		if name == key {
-			return v.Field(i).String()
+			item := v.Field(i)
+
+			switch item.Kind() {
+			case reflect.Slice, reflect.Array:
+				return item.Interface()
+
+			default:
+				return item.String()
+			}
 		}
 	}
 

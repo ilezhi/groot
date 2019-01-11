@@ -3,7 +3,9 @@ version: "0.0.1"
 description: 实时问答社区
 keywords: "go, gorm, mysql, socket, iris, angular"
 
-admin: "dm@123.com"
+admin:
+  - "dm@123.com"
+  - "skr@123.com"
 
 db: "root:Mysql@2018@/groot?charset=utf8&parseTime=True&loc=Local"
 

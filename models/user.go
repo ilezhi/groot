@@ -29,7 +29,6 @@ type User struct {
 
 func (user *User) Validate() error {
 	valid := validator.New()
-	fmt.Println("validate", user)
 	err := valid.Struct(user)
 
 	return err
