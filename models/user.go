@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 	"gopkg.in/go-playground/validator.v9"
 	sql "groot/db"
