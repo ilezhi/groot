@@ -6,14 +6,14 @@ import (
 )
 
 type AnswerForm struct {
-	TopicID uint `json:"topicID"`
-	AuthorID uint `json:"authorID"`
+	TopicID int `json:"topicID"`
+	AuthorID int `json:"authorID"`
 }
 
 func Comments(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	user := ctx.Session().Get("user").(*models.User)
 	comments, err := topic.GetComments(user.ID)
@@ -31,7 +31,7 @@ func Comments(ctx *middleware.Context) {
 func Comment(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	exist := topic.IsExist()
 	if !exist {
@@ -76,7 +76,7 @@ func Comment(ctx *middleware.Context) {
 func Reply(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	exist := topic.IsExist()
 	if !exist {
@@ -128,7 +128,7 @@ func AsAnswer(ctx *middleware.Context) {
 		return
 	}
 
-	if topic.AnswerID == uint(id) {
+	if topic.AnswerID == id {
 		id = 0
 	}
 

@@ -10,7 +10,7 @@ import (
 type TopicParams struct {
 	Title 	string		`json:"title"`
 	Content string		`json:"content"`
-	Tags 		[]uint		`json:"tags"`
+	Tags 		[]int			`json:"tags"`
 	Shared 	bool			`json:"shared"`
 }
 
@@ -19,13 +19,13 @@ type Topic struct {
 	Title					string				`json:"title" gorm:"type:varchar(100);index;not null" validate:"min=10,max=30,required"`
 	Content				string				`json:"content" gorm:"type:text"`
 	Shared				bool					`json:"shared" gorm:"default:'0'"`
-	AuthorID			uint					`json:"authorID" gorm:"index" validate:"required,numeric"`
-	View					uint					`json:"view" gorm:"default:'0'"`			// 浏览量
+	AuthorID			int						`json:"authorID" gorm:"index" validate:"required,numeric"`
+	View					int						`json:"view" gorm:"default:'0'"`			// 浏览量
 	Top						bool					`json:"top" gorm:"default:'0'"`				// 置顶
 	Awesome				bool					`json:"awesome" gorm:"default:'0'"`		// 精华
 	Issue					bool					`json:"issue" gorm:"default:'1'"`			// 默认发布
 	ActiveAt			int64					`json:"activeAt"`
-	AnswerID			uint					`json:"answerID"`
+	AnswerID			int						`json:"answerID"`
 	Answer				*Comment			`json:"answer" gorm:"-"`
 	Tags					[]*Tag				`json:"tags,-" gorm:"-"`
 	LikeCount			int						`json:"likeCount" gorm:"-"`
@@ -33,10 +33,10 @@ type Topic struct {
 	FavorCount		int						`json:"favorCount" gorm:"-"`
 	Nickname			string				`json:"nickname" gorm:"-"`
 	Avatar				string				`json:"avatar" gorm:"-"`
-	DeptID				uint					`json:"deptID" gorm:"-"`
+	DeptID				int						`json:"deptID" gorm:"-"`
 	IsLike				bool					`json:"isLike" gorm:"-"`
 	IsFavor				bool					`json:"isFavor" gorm:"-"`
-	CategoryID		uint					`json:"categoryID" gorm:"-"`
+	CategoryID		int						`json:"categoryID" gorm:"-"`
 	IsFull				bool					`json:"isFull" gorm:"-"`
 	LastNickname 	string				`json:"lastNickname" gorm:"-"`
 	LastAvatar  	string				`json:"lastAvatar" gorm:"-"`
@@ -67,7 +67,7 @@ func (topic *Topic) Awesomes(size int) ([]*Topic, error) {
 	return topic.SearchByPage("t.awesome = ?", 1, size)
 }
 
-func (topic *Topic) Department(deptID uint, size int) (topics []*Topic, err error) {
+func (topic *Topic) Department(deptID int, size int) (topics []*Topic, err error) {
 	return topic.SearchByPage("au.dept_id = ?", deptID, size)
 }
 
@@ -79,7 +79,7 @@ func (topic *Topic) Solved(size int) (topics []*Topic, err error) {
 	return topic.SearchByPage("au.id = ? AND t.answer_id <> 0", topic.AuthorID, size)
 }
 
-func (topic *Topic) CommentAsAnswer(size int, uid uint) (topics []*Topic, err error) {
+func (topic *Topic) CommentAsAnswer(size int, uid int) (topics []*Topic, err error) {
 	joins := "JOIN comments c ON t.answer_id = c.id AND c.author_id = ?"
 	err = PageTopics(topic.ActiveAt, size).Joins(joins, uid).Scan(&topics).Error
 	if err != nil {
@@ -127,7 +127,7 @@ func (topic *Topic) FindFullByID() error {
 	return err
 }
 
-func (topic *Topic) GetCount(uid uint) {
+func (topic *Topic) GetCount(uid int) {
 	like := new(Like)
 	like.TargetID = topic.ID
 	like.Type = "topic"
@@ -157,7 +157,7 @@ func (topic *Topic) GetComtCount() {
 /**
  * id 分类id
  */
-func (topic *Topic) GetByCategory(id uint, size int) (topics []*Topic, err error) {
+func (topic *Topic) GetByCategory(id int, size int) (topics []*Topic, err error) {
 	joins := "JOIN favors f ON f.topic_id = t.id AND f.category_id = ?"
 	err = PageTopics(topic.ActiveAt, size).Joins(joins, id).Scan(&topics).Error
 	if err != nil {
@@ -176,7 +176,7 @@ func (topic *Topic) SharedList(size int) (topics []*Topic, err error) {
 	return topic.SearchByPage("t.shared = 1 AND t.author_id = ?", topic.AuthorID, size)
 }
 
-func (topic *Topic) GetByTag(id uint, size int) (topics []*Topic, err error) {
+func (topic *Topic) GetByTag(id int, size int) (topics []*Topic, err error) {
 	joins := "JOIN topic_tags tt ON tt.topic_id = t.id AND tt.tag_id = ?"
 	err = PageTopics(topic.ActiveAt, size).Joins(joins, id).Where("au.id = ?", topic.AuthorID).Scan(&topics).Error
 	if err != nil {
@@ -216,7 +216,7 @@ func (topic *Topic) GetTags() error {
 	return err
 }
 
-func (topic *Topic) Save(tags *[]uint) error {
+func (topic *Topic) Save(tags *[]int) error {
 	tx := sql.DB.Begin()
 	err := tx.Create(topic).Error
 	if err != nil {
@@ -240,7 +240,7 @@ func (topic *Topic) Save(tags *[]uint) error {
 	return nil
 }
 
-func (topic *Topic) Update(tags *[]uint) error {
+func (topic *Topic) Update(tags *[]int) error {
 	topic.ActiveAt = time.Now().Unix()
 	tx := sql.DB.Begin()
 	err := tx.Model(topic).Select("content", "shared", "active_at").Updates(*topic).Error
@@ -285,7 +285,7 @@ func (topic *Topic) UpdateField(field string, value interface{}) error {
 	return sql.DB.Model(topic).UpdateColumns(fields).Error
 }
 
-func (topic *Topic) GetComments(uid uint) (comments []*Comment, err error) {
+func (topic *Topic) GetComments(uid int) (comments []*Comment, err error) {
 	fields := `c.id, c.content, c.topic_id, c.updated_at, c.author_id, c.created_at,
 							u.nickname, u.avatar`
 

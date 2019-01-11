@@ -2,6 +2,6 @@ package models
 
 type ProjectMember struct {
 	BaseModel
-	PorjectID     uint		`json:"projectID" gorm:"index"`
-	MemberID			uint		`json:"memberID" gorm:"index"`
+	PorjectID     int		`json:"projectID" gorm:"index"`
+	MemberID			int		`json:"memberID" gorm:"index"`
 }

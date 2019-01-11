@@ -9,13 +9,13 @@ type Comment struct {
 	BaseModel
 	Content		string			`json:"content" gorm:"type:text" validate:"required"`
 	Replies		[]*Reply		`json:"replies" gorm:"-"`
-	AuthorID	uint				`json:"authorID"`
-	TopicID		uint				`json:"topicID" validate:"required"`
+	AuthorID	int					`json:"authorID"`
+	TopicID		int					`json:"topicID" validate:"required"`
 	Nickname	string			`json:"nickname" gorm:"-"`
 	Avatar		string			`json:"avatar" gorm:"-"`
 	Title			string			`json:"title" gorm:"-"`
 	Shared    bool  			`json:"shared" gorm:"-"`
-	RID       uint        `json:"rid" gorm:"-"`
+	RID       int        	`json:"rid" gorm:"-"`
 	IsLike		bool				`json:"isLike" gorm:"-"`
 	LikeCount	int					`json:"likeCount" gorm:"-"`
 }
@@ -54,7 +54,7 @@ func (comt *Comment) Delete() error {
 	return sql.DB.Delete(comt).Error
 }
 
-func (c *Comment) GetReplies(uid uint) error {
+func (c *Comment) GetReplies(uid int) error {
 	var replies []*Reply
 	fields := `r.id, r.content, r.comment_id, r.topic_id, r.author_id, r.receiver_id, r.updated_at, r.created_at,
 						 au.nickname, au.avatar, ru.nickname as receiver_name, ru.avatar as receiver_avatar`

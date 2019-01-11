@@ -8,17 +8,17 @@ import (
 type Reply struct {
 	BaseModel
 	Content					string			`json:"content" gorm:"type:text" validate:"required"`
-	CommentID				uint				`json:"commentID" validate:"required,numeric"`
-	AuthorID				uint				`json:"authorID"`
-	TopicID					uint				`json:"topicID"`
-	ReceiverID			uint				`json:"receiverID" validate:"required,numeric"`
+	CommentID				int					`json:"commentID" validate:"required,numeric"`
+	AuthorID				int					`json:"authorID"`
+	TopicID					int					`json:"topicID"`
+	ReceiverID			int					`json:"receiverID" validate:"required,numeric"`
 	Nickname				string			`json:"nickname" gorm:"-"`
 	Avatar					string			`json:"avatar" gorm:"-"`
 	ReceiverName		string			`json:"receiverName" gorm:"-"`
 	ReceiverAvatar	string			`json:"receiverAvatar" gorm:"-"`
 	Title						string			`json:"title" gorm:"-"`
 	Shared					bool  			`json:"shared" gorm:"-"`
-	RID             uint        `json:"rid" gorm:"-"`
+	RID             int        	`json:"rid" gorm:"-"`
 	IsLike					bool				`json:"isLike" gorm:"-"`
 	LikeCount				int					`json:"likeCount" gorm:"-"`
 }

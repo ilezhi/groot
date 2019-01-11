@@ -8,7 +8,7 @@ import (
 type Category struct {
 	BaseModel
 	Name				string			`json:"name" gorm:"size:30;not null"`
-	UserID			uint				`json:"userID"`
+	UserID			int					`json:"userID"`
 	Count				int					`json:"count" gorm:"-"`
 }
 

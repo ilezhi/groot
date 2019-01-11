@@ -16,7 +16,7 @@ var (
 
 // 保存每个客户端连接信息
 type Client struct {
-	id uint
+	id int
 
 	hub *Hub
 
@@ -26,7 +26,7 @@ type Client struct {
 }
 
 type Message struct {
-	to []uint
+	to []int
 	data interface{}
 }
 
@@ -63,17 +63,17 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) To(id uint, message interface{}) {
+func (c *Client) To(id int, message interface{}) {
 	msg := &Message{
 		data: message,
-		to: []uint{id},
+		to: []int{id},
 	}
 	c.hub.broadcast <- msg
 }
 
 func (c *Client) All(message interface{}) {
 	len := len(c.hub.clients)
-	ids := make([]uint, 0, len - 1)
+	ids := make([]int, 0, len - 1)
 
 	for id := range c.hub.clients {
 		ids = append(ids, id)
@@ -88,7 +88,7 @@ func (c *Client) All(message interface{}) {
 
 func (c *Client) Others(message interface{}) {
 	len := len(c.hub.clients)
-	ids := make([]uint, 0, len - 1)
+	ids := make([]int, 0, len - 1)
 
 	for id := range c.hub.clients {
 		if id == c.id {
@@ -110,7 +110,7 @@ func (c *Client) Others(message interface{}) {
 // TODO:
 // 4. 分组发送
 type Hub struct {
-	clients map[uint]*Client
+	clients map[int]*Client
 
 	broadcast chan *Message
 
@@ -153,7 +153,7 @@ func (h *Hub) send(message *Message) {
 
 func newHub() *Hub {
 	return &Hub{
-		clients: 		make(map[uint]*Client),
+		clients: 		make(map[int]*Client),
 		register: 	make(chan *Client),
 		unregister: make(chan *Client),
 		broadcast: 		make(chan *Message),
@@ -183,7 +183,7 @@ func WSConn(ctx *Context) {
 		return
 	}
 
-	client := &Client{id: uint(id) , hub: hub, conn: conn, send: make(chan interface{})}
+	client := &Client{id: id , hub: hub, conn: conn, send: make(chan interface{})}
 	client.hub.register <- client
 
 	go client.readPump()

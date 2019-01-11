@@ -16,7 +16,7 @@ type SignupInfo struct {
 	LoginInfo
 	ConfirmPassword string `json:"confirmPassword"`
 	Nickname   string      `json:"nickname"`
-	DeptID		 uint				 `json:"deptID"`
+	DeptID		 int				 `json:"deptID"`
 }
 
 func SignIn(ctx *middleware.Context) {

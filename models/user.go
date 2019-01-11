@@ -8,7 +8,7 @@ import (
 )
 
 type User struct {
-	ID				uint			`json:"id" gorm:"primary_key;auto_increment"`
+	ID				int				`json:"id" gorm:"primary_key;auto_increment"`
 	Name			string		`json:"name" gorm:"size:15;not null" validate:"min=2,max=5,required"`
 	Nickname	string		`json:"nickname" gorm:"size:50;default:''"`
 	Email			string		`json:"email" gorm:"size:50;unique_index" validate:"required,email"`
@@ -17,7 +17,7 @@ type User struct {
 	Phone			string		`json:"phone" gorm:"type:char(11)"`
 	Avatar		string		`json:"avatar" gorm:"type:varchar(2048)"`
 	Birthday	string		`json:"birthday" gorm:"type:char(10)"`
-	DeptID		uint			`json:"deptID"`
+	DeptID		int				`json:"deptID"`
 	Token			int64			`json:"token"`
 	SecretKey	string		`json:"secreKey"`
 	IsVerify	bool			`json:"isVerify" gorm:"default:'0'"`		// 默认账号需要邮箱激活验证

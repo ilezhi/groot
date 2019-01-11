@@ -9,16 +9,16 @@ import (
 )
 
 type TopicForm struct {
-	ID			 		uint      `json:"id,omitempty"`
+	ID			 		int      	`json:"id,omitempty"`
 	Title 	 		string		`json:"title"`
 	Content  		string		`json:"content,omitempty"`
-	Tags 		 		[]uint		`json:"tags,omitempty"`
+	Tags 		 		[]int			`json:"tags,omitempty"`
 	Shared 	 		bool			`json:"shared"`
 	Type     		string    `json:"type,omitempty"`
-	AuthorID 		uint			`json:"authorID,omitempty"`
+	AuthorID 		int				`json:"authorID,omitempty"`
 	IsLike   		bool      `json:"isLike"`
 	IsFavor  		bool      `json:"isFavor"`
-	CategoryID 	uint			`json:"categoryID,omitempty"`
+	CategoryID 	int				`json:"categoryID,omitempty"`
 	Nickname    string    `json:"nickname,omitempty"`
 	Avatar			string		`json:"avatar,omitempty"`
 }
@@ -134,7 +134,7 @@ func FavorTopics(ctx *middleware.Context) {
 
 	topic.ActiveAt = lastID
 
-	topics, err := topic.GetByCategory(uint(id), size)
+	topics, err := topic.GetByCategory(id, size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -171,7 +171,7 @@ func TagTopics(ctx *middleware.Context) {
 	topic.ActiveAt = lastID
 	topic.AuthorID = user.ID
 
-	topics, err := topic.GetByTag(uint(id), size)
+	topics, err := topic.GetByTag(id, size)
 	if err != nil {
 		ctx.Error(500, "查询失败")
 		return
@@ -197,7 +197,7 @@ func Top(ctx *middleware.Context) {
 func Topic(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	isExist := topic.IsExist()
 	if !isExist {
@@ -289,7 +289,7 @@ func UpdateTopic(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	user := ctx.Session().Get("user").(*models.User)
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	isExist := topic.IsExist()
 	if !isExist {
@@ -329,7 +329,7 @@ func FavorTopic(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 	
 	isExist := topic.IsExist()
 	if !isExist {
@@ -345,7 +345,7 @@ func FavorTopic(ctx *middleware.Context) {
 	}
 
 	user := ctx.Session().Get("user").(*models.User)
-	favor.TopicID = uint(id)
+	favor.TopicID = id
 	favor.UserID = user.ID
 	favor.CategoryID = form.CategoryID
 	isFavor := favor.IsExist()
@@ -366,7 +366,7 @@ func FavorTopic(ctx *middleware.Context) {
 	}	
 
 	form.IsFavor = !isFavor
-	form.ID = uint(id)
+	form.ID = id
 	form.Nickname = user.Nickname
 	form.Avatar = user.Avatar
 	rt := make(map[string]interface{})
@@ -387,7 +387,7 @@ func Like(ctx *middleware.Context) {
 	like := new(models.Like)
 	ctx.ReadJSON(&form)
 
-	like.TargetID = uint(id)
+	like.TargetID = id
 	like.UserID = user.ID
 	like.Type = form.Type
 
@@ -410,7 +410,7 @@ func Like(ctx *middleware.Context) {
 	}
 
 	form.IsLike = !isLike
-	form.ID = uint(id)
+	form.ID = id
 	form.Nickname = user.Nickname
 	form.Avatar = user.Avatar
 	rt := make(map[string]interface{})
@@ -424,7 +424,7 @@ func Like(ctx *middleware.Context) {
 func SetTop(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	isExist := topic.IsExist()
 
@@ -457,7 +457,7 @@ func SetTop(ctx *middleware.Context) {
 func SetAwesome(ctx *middleware.Context) {
 	id, _ := ctx.Params().GetInt("id")
 	topic := new(models.Topic)
-	topic.ID = uint(id)
+	topic.ID = id
 
 	isExist := topic.IsExist()
 
