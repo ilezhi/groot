@@ -19,6 +19,7 @@ func Connect() (db *gorm.DB, err error) {
 	if err != nil {
 		fmt.Println("fail to connect database", err)
 	}
+
 	DB = db
 	return
 }

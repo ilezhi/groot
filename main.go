@@ -1,88 +1,27 @@
 package main
 
 import (
-	// "fmt"
-	// "os"
-	// "github.com/jinzhu/gorm"
-	// _ "github.com/go-sql-driver/mysql"
-
+	"fmt"
+	"os"
+	"github.com/jinzhu/gorm"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/middleware/recover"
-	// . "groot/models"
-	// "groot/tools"
 
-	
 	"groot/db"
 	"groot/route"
 	"groot/middleware"
+	"groot/config"
+	. "groot/models"
 )
-
-// var DB *gorm.DB
-
-// func init() {
-// 	DB, err := gorm.Open("mysql", "root:Mysql@2018@/groot?charset=utf8&parseTime=True&loc=Local")
-// 	defer DB.Close()
-// 	if err != nil {
-// 		fmt.Println("连接数据库失败", err)
-// 		os.Exit(2)
-// 	}
-
-	// if err != nil {
-	// 	fmt.Println("验证失败", err)
-	// } else {
-	// 	fmt.Println("验证成功")
-	// }
-	// err = DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
-	// 	&ProjectMember{}, &Like{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
-
-	// if err != nil {
-	// 	fmt.Println("创建表格失败", err)
-	// 	os.Exit(2)
-	// }
-
-// 	hash := tools.EncryptPwd("123abc")
-// 	user := User{
-// 		Name: "skr",
-// 		Nickname: "skr",
-// 		Email: "skr@123.com",
-// 		Password: hash,
-// 		IsAdmin: false,
-// 		IsVerify: true,
-// 	}
-
-	// depts := []*Department{
-	// 	&Department{
-	// 		Name: "技术部",
-	// 	},
-	// 	&Department{
-	// 		Name: "市场部",
-	// 	},
-	// 	&Department{
-	// 		Name: "财务部",
-	// 	},
-	// 	&Department{
-	// 		Name: "人事部",
-	// 	},
-	// }
-
-	// for i, dept := range depts {
-	// 	err := DB.Create(dept).Error
-	// 	if err != nil {
-	// 		fmt.Println("新增部门失败", i)
-	// 	}
-	// }
-
-// 	err = DB.Create(&user).Error
-
-// 	if err != nil {
-// 		fmt.Println("新增用户错误", err)
-// 	}
-// 	fmt.Println(user)
-// }
 
 func main() {
 	conn, _ := db.Connect()
+
+	if !conn.HasTable("users") {
+		initDB(conn)
+	}
+
 	defer conn.Close()
 	app := iris.New()
 
@@ -106,4 +45,25 @@ func main() {
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
 	)
+}
+
+func initDB(DB *gorm.DB) {
+	err := DB.CreateTable(&User{}, &Topic{}, &Tag{}, &TopicTag{}, &Comment{}, &Reply{}, &Project{}, 
+		&ProjectMember{}, &Like{}, &Favor{}, &Department{}, &Category{}, &Team{}).Error
+	if err != nil {
+		fmt.Println("fail to create tables")
+		os.Exit(2)
+	}
+
+	depts := config.Values().Get("departments")
+	arr, _ := depts.([]string)
+	for _, val := range arr {
+		dept := &Department{
+			Name: val,
+		}
+		err = DB.Create(dept).Error
+		if err != nil {
+			fmt.Println("fail to create departments")
+		}
+	}
 }

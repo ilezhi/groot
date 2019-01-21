@@ -9,4 +9,10 @@ admin:
 
 db: "mysql:ThisISmysql@tcp(db:3306)/groot?charset=utf8&parseTime=True&loc=Local"
 
+departments:
+  - "技术部"
+  - "人事部"
+  - "财务部"
+  - "其它"
+
 session_secret: "racconandgroot"

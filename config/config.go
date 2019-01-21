@@ -16,6 +16,7 @@ type Config struct {
 	Session_Secret string		`json:"ss"`
 	Port int								`json:"port"`
 	Init bool								`json:"init"`
+	Departments []string    `json:"departments"`
 }
 
 var config = new(Config)
