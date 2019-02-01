@@ -1,8 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
 	"reflect"
 )
 
@@ -14,20 +12,23 @@ type Config struct {
 	Admin []string					`json:"admin"`
 	DB string								`json:"db"`
 	Session_Secret string		`json:"ss"`
-	Port int								`json:"port"`
-	Init bool								`json:"init"`
 	Departments []string    `json:"departments"`
+	Localhost string        `json:"localhost"`
 }
 
-var config = new(Config)
+var config = &Config{
+	Name: "groot",
+	Version: "0.0.1",
+	Description: "实时问答社区",
+	Keywords: "go, gorm, mysql, socket, iris, angular",
+	Admin: []string{"dm@123.com", "skr@123.com"},
+	DB: "mysql:ThisISmysql@tcp(db:3306)/groot?charset=utf8&parseTime=True&loc=Local",
+	Departments: []string{"技术部", "人事部", "财务部", "其它"},
+	Session_Secret: "racconandgroot",
+	Localhost: "0.0.0.0:9000",
+}
 
 func Values() *Config {
-	if !config.Init {
-		buf, _ := ioutil.ReadFile("./config.yaml")
-		yaml.Unmarshal(buf, config)
-		config.Init = true
-	}
-
 	return config
 }
 
