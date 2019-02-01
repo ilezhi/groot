@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"time"
 	"sync"
 	"github.com/kataras/iris"
@@ -64,7 +63,6 @@ func (ctx *Context) Session() *sessions.Session {
 }
 
 func (ctx *Context) Client() *Client {
-	fmt.Println("ctx.client", ctx.client)
 	if ctx.client == nil {
 		user := ctx.Session().Get("user").(*models.User)
 		ctx.client = hub.clients[user.ID]
