@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -31,7 +32,9 @@ type Message struct {
 }
 
 func (c *Client) readPump() {
+	fmt.Println("读取数据")
 	defer func() {
+		fmt.Println("关闭连接")
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
@@ -39,6 +42,7 @@ func (c *Client) readPump() {
 	for {
 		_, _, err := c.conn.ReadMessage()
 		if err != nil {
+			fmt.Println("err", err)
 			break
 		}
 

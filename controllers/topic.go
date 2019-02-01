@@ -258,10 +258,14 @@ func PublishTopic(ctx *middleware.Context) {
 
 	topic.Nickname = user.Nickname
 	topic.Avatar = user.Avatar
-	rt := make(map[string]interface{})
-	rt["type"] = "topic"
-	rt["data"] = topic
-	go ctx.Client().Others(rt)
+
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "topic"
+		rt["data"] = topic
+		go ctx.Client().Others(rt)
+	}
+
 	ctx.Go(topic)
 }
 
@@ -309,11 +313,14 @@ func UpdateTopic(ctx *middleware.Context) {
 	topic.Nickname = user.Nickname
 	topic.Avatar = user.Avatar
 
-	rt := make(map[string]interface{})
-	rt["type"] = "topic"
-	rt["action"] = "update"
-	rt["data"] = topic
-	go ctx.Client().Others(rt)
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "topic"
+		rt["action"] = "update"
+		rt["data"] = topic
+		go ctx.Client().Others(rt)
+	}
+
 	ctx.Go(topic)
 }
 
@@ -369,10 +376,13 @@ func FavorTopic(ctx *middleware.Context) {
 	form.ID = id
 	form.Nickname = user.Nickname
 	form.Avatar = user.Avatar
-	rt := make(map[string]interface{})
-	rt["type"] = "favor"
-	rt["data"] = form
-	go ctx.Client().Others(rt)
+
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "favor"
+		rt["data"] = form
+		go ctx.Client().Others(rt)
+	}
 
 	ctx.Go(form.IsFavor)
 }
@@ -413,10 +423,13 @@ func Like(ctx *middleware.Context) {
 	form.ID = id
 	form.Nickname = user.Nickname
 	form.Avatar = user.Avatar
-	rt := make(map[string]interface{})
-	rt["type"] = "like"
-	rt["data"] = form
-	go ctx.Client().Others(rt)
+
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "like"
+		rt["data"] = form
+		go ctx.Client().Others(rt)
+	}
 
 	ctx.Go(form.IsLike)
 }
@@ -446,10 +459,12 @@ func SetTop(ctx *middleware.Context) {
 		return
 	}
 
-	rt := make(map[string]interface{})
-	rt["type"] = "top"
-	rt["data"] = topic
-	go ctx.Client().Others(rt)
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "top"
+		rt["data"] = topic
+		go ctx.Client().Others(rt)
+	}
 
 	ctx.Go(topic)
 }
@@ -479,10 +494,12 @@ func SetAwesome(ctx *middleware.Context) {
 		return
 	}
 
-	rt := make(map[string]interface{})
-	rt["type"] = "awesome"
-	rt["data"] = topic
-	go ctx.Client().Others(rt)
+	if (ctx.Client() != nil) {
+		rt := make(map[string]interface{})
+		rt["type"] = "awesome"
+		rt["data"] = topic
+		go ctx.Client().Others(rt)
+	}
 
 	ctx.Go(topic)
 }

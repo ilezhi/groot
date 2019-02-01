@@ -15,7 +15,9 @@ func init() {
 var DB *gorm.DB
 
 func Connect() (db *gorm.DB, err error) {
-	db, err = gorm.Open("mysql", config.Values().Get("db"))
+	str := config.Values().Get("db")
+	fmt.Println("链接信息", str)
+	db, err = gorm.Open("mysql", str)
 	if err != nil {
 		fmt.Println("fail to connect database", err)
 	}

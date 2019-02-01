@@ -16,7 +16,10 @@ import (
 )
 
 func main() {
-	conn, _ := db.Connect()
+	conn, err := db.Connect()
+	if err != nil {
+		return
+	}
 
 	if !conn.HasTable("users") {
 		initDB(conn)
@@ -40,7 +43,7 @@ func main() {
 	Router.Register(app)
 
 	app.Run(
-		iris.Addr("0.0.0.0:9000"),
+		iris.Addr(config.Values().Get("localhost").(string)),
 		iris.WithoutVersionChecker,
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
