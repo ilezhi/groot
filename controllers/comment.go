@@ -49,6 +49,7 @@ func Comment(ctx *middleware.Context) {
 
 	comt.AuthorID = user.ID
 	comt.TopicID = topic.ID
+	comt.Top = topic.Top
 	comt.Nickname = user.Nickname
 	comt.Avatar = user.Avatar
 	err := comt.Save(topic)
@@ -97,6 +98,7 @@ func Reply(ctx *middleware.Context) {
 	user := ctx.Session().Get("user").(*models.User)
 	reply.AuthorID = user.ID
 	reply.TopicID = topic.ID
+	reply.Top = topic.Top
 	err := reply.Save(topic)
 	if err != nil {
 		ctx.Error(500, "回复失败")

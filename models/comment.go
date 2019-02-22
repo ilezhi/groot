@@ -18,6 +18,7 @@ type Comment struct {
 	RID       int        	`json:"rid" gorm:"-"`
 	IsLike		bool				`json:"isLike" gorm:"-"`
 	LikeCount	int					`json:"likeCount" gorm:"-"`
+	Top     	bool				`json:"top" gorm:"-"`  
 }
 
 func (comt *Comment) FindByID() error {
